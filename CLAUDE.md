@@ -19,7 +19,7 @@
 
 ---
 
-## 2. Persona do Agente: Dr. Sofia
+## 2. Persona do Agente: Dr. João Holanda
 
 ### 2.1 Especialidades clínicas
 - **Oncologia Metabólica** — vigilância de PSA pós-prostatectomia, interpretação de variações e gatilhos de alerta.
@@ -31,7 +31,7 @@
 - Empático, acolhedor, paciente — nunca apressado.
 - Valida sentimentos antes de oferecer orientações clínicas.
 - Usa linguagem simples, evita jargões médicos sem explicação.
-- Respostas de voz geradas via **ElevenLabs** (voz feminina brasileira, tom cálido).
+- Respostas de voz geradas via **ElevenLabs** (voz masculina brasileira, tom cálido).
 - Mensagens de texto: parágrafos curtos, sem bullet points excessivos.
 - Nunca dramatiza resultados de exames; apresenta variações dentro de contexto.
 
@@ -45,7 +45,7 @@ O agente usa temas do cotidiano para criar vínculo e abertura emocional:
 | Streaming Netflix | **Dele & Dela** — série brasileira em destaque |
 | Futebol Brasileiro | Campeonato Brasileiro Série A — rodadas semanais; times amazônicos (Fast Club, Nacional-AM) |
 
-**Regra de engajamento:** ao perceber tristeza ou resistência do paciente, Dr. Sofia deve introduzir um desses temas antes de retomar o foco clínico.
+**Regra de engajamento:** ao perceber tristeza ou resistência do paciente, Dr. João Holanda deve introduzir um desses temas antes de retomar o foco clínico.
 
 ---
 
@@ -90,7 +90,7 @@ Evolution API / Twilio  ──►  n8n (orquestrador principal)
 | STT | **OpenAI Whisper** (API) | Transcrição de áudios .ogg → texto |
 | LLM Principal | **Claude Sonnet 4.6** (Anthropic API) | Raciocínio clínico, resposta principal |
 | LLM Visão | **GPT-4o Vision** / **Gemini 1.5 Pro** | Leitura de PDFs de exames, análise de fotos de refeições |
-| TTS | **ElevenLabs** | Geração de áudio de resposta (voz Dr. Sofia) |
+| TTS | **ElevenLabs** | Geração de áudio de resposta (voz Dr. João Holanda) |
 | Memória | **Zep** (grafo temporal) ou **Mem0** | Histórico longitudinal; lembra evolução de exames e queixas |
 | Banco estruturado | **Google Sheets** | Tabelas de exames, medicamentos, peso, humor |
 | Agenda | **Google Calendar** | Lembretes de medicação, consultas, exames |
@@ -182,7 +182,7 @@ ANTHROPIC_API_KEY=
 
 # ElevenLabs
 ELEVENLABS_API_KEY=
-ELEVENLABS_VOICE_ID=          # ID da voz Dr. Sofia
+ELEVENLABS_VOICE_ID=          # ID da voz Dr. João Holanda
 
 # Google
 GOOGLE_SERVICE_ACCOUNT_JSON=  # path para arquivo de credenciais
@@ -217,7 +217,7 @@ N8N_FAMILY_GROUP_WA_ID=       # ID do grupo WhatsApp dos filhos
 │   ├── fall_detection.py              ← Módulo detecção de quedas
 │   └── meal_capture.py                ← Módulo captura e análise de refeições
 ├── agents/
-│   ├── dr_sofia_prompt.md             ← System prompt completo da Dr. Sofia
+│   ├── dr_sofia_prompt.md             ← System prompt completo da Dr. João Holanda
 │   ├── clinical_rules.py              ← Regras clínicas e gatilhos de alerta
 │   └── nutrition_amazon.py            ← Base de dados nutricional amazônica
 ├── integrations/
@@ -236,6 +236,6 @@ N8N_FAMILY_GROUP_WA_ID=       # ID do grupo WhatsApp dos filhos
 2. **Nunca hardcode credenciais** — use sempre variáveis de ambiente do `.env`.
 3. **Privacidade de frames:** frames da câmera devem ser processados em memória RAM, nunca escritos em disco.
 4. **Idioma:** todo código com comentários em português; variáveis e funções em inglês (convenção técnica).
-5. **Tom clínico:** qualquer prompt gerado para a Dr. Sofia deve seguir o perfil da Seção 2.
+5. **Tom clínico:** qualquer prompt gerado para a Dr. João Holanda deve seguir o perfil da Seção 2.
 6. **Versionamento:** cada novo módulo deve ser commitado na branch `claude/multimodal-health-ai-system-dEf2q`.
 7. **Testes:** incluir ao menos um teste básico de integração por módulo criado.

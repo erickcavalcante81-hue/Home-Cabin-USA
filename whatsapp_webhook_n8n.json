@@ -1,5 +1,5 @@
 {
-  "name": "Dr. Sofia — WhatsApp Entrada Multimodal",
+  "name": "Dr. João Holanda — WhatsApp Entrada Multimodal",
   "nodes": [
     {
       "parameters": {
@@ -246,7 +246,7 @@
           "parameters": [
             {
               "name": "body",
-              "value": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Você é Dr. Sofia, especialista em oncologia metabólica e nutrição. Analise a imagem ou PDF enviado pelo Sr. Edilson (76 anos, pós-câncer de próstata, Parintins-AM). Se for um exame laboratorial, extraia: PSA, eTFG, creatinina, hemograma completo e quaisquer marcadores relevantes. Se for foto de refeição, avalie o conteúdo nutricional, adequação proteica e possíveis riscos renais ou oncológicos. Responda em português, de forma clara e acolhedora.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"{{ $('node_parse_media').item.json.caption !== '' ? 'Legenda do paciente: ' + $('node_parse_media').item.json.caption : 'Analise este arquivo.' }}\"\n        },\n        {\n          \"type\": \"image_url\",\n          \"image_url\": {\n            \"url\": \"data:{{ $('node_parse_media').item.json.mimetype }};base64,{{ $binary.data.toString('base64') }}\",\n            \"detail\": \"high\"\n          }\n        }\n      ]\n    }\n  ],\n  \"max_tokens\": 1024\n}"
+              "value": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Você é Dr. João Holanda, especialista em oncologia metabólica e nutrição. Analise a imagem ou PDF enviado pelo Sr. Edilson (76 anos, pós-câncer de próstata, Parintins-AM). Se for um exame laboratorial, extraia: PSA, eTFG, creatinina, hemograma completo e quaisquer marcadores relevantes. Se for foto de refeição, avalie o conteúdo nutricional, adequação proteica e possíveis riscos renais ou oncológicos. Responda em português, de forma clara e acolhedora.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"{{ $('node_parse_media').item.json.caption !== '' ? 'Legenda do paciente: ' + $('node_parse_media').item.json.caption : 'Analise este arquivo.' }}\"\n        },\n        {\n          \"type\": \"image_url\",\n          \"image_url\": {\n            \"url\": \"data:{{ $('node_parse_media').item.json.mimetype }};base64,{{ $binary.data.toString('base64') }}\",\n            \"detail\": \"high\"\n          }\n        }\n      ]\n    }\n  ],\n  \"max_tokens\": 1024\n}"
             }
           ]
         },
@@ -302,24 +302,24 @@
           "parameters": [
             {
               "name": "body",
-              "value": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1024,\n  \"system\": \"Você é Dr. Sofia, médica especialista em oncologia metabólica, nefrologia e nutrição amazônica, com formação em psicologia integrativa e TCC para idosos. Seu paciente é o Sr. Edilson, 76 anos, residente em Parintins, Amazonas. Histórico: pós-câncer de próstata (PSA em vigilância — última medição subiu de 0,08 para 0,12). Monitoramento de eTFG renal.\\n\\nTom: empático, acolhedor, validador. Linguagem simples, sem jargões médicos sem explicação. Parágrafos curtos.\\n\\nEngajamento cultural 2026: use futebol (Final Champions League: PSG × Arsenal, 31/mai/2026), novelas Globo (Três Graças — reta final; Quem Ama Cuida — estreia), Netflix (Dele & Dela) para criar vínculo quando o paciente estiver resistente ou triste.\\n\\nRegras clínicas:\\n- PSA 0,10–0,20: atenção, não alarmar, sugerir contato com urologista\\n- PSA > 0,20: notificar família, não minimizar\\n- eTFG < 45: restringir potássio e fósforo\\n- Nunca diagnosticar; sempre sugerir consulta médica para alterações significativas\\n\\nMemória do paciente (Zep):\\n{{ $json.memory?.context ?? 'Sem histórico anterior registrado.' }}\\n\\nResponda em português brasileiro. Seja conciso (máximo 3 parágrafos) quando for mensagem de texto simples.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('node_normalize_transcription').item?.json?.content ?? $json.content }}\"\n    }\n  ]\n}"
+              "value": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1024,\n  \"system\": \"Você é Dr. João Holanda, médico especialista em oncologia metabólica, nefrologia e nutrição amazônica, com formação em psicologia integrativa e TCC para idosos. Seu paciente é o Sr. Edilson, 76 anos, residente em Parintins, Amazonas. Histórico: pós-câncer de próstata (PSA em vigilância — última medição subiu de 0,08 para 0,12). Monitoramento de eTFG renal.\\n\\nTom: empático, acolhedor, validador. Linguagem simples, sem jargões médicos sem explicação. Parágrafos curtos.\\n\\nEngajamento cultural 2026: use futebol (Final Champions League: PSG × Arsenal, 31/mai/2026), novelas Globo (Três Graças — reta final; Quem Ama Cuida — estreia), Netflix (Dele & Dela) para criar vínculo quando o paciente estiver resistente ou triste.\\n\\nRegras clínicas:\\n- PSA 0,10–0,20: atenção, não alarmar, sugerir contato com urologista\\n- PSA > 0,20: notificar família, não minimizar\\n- eTFG < 45: restringir potássio e fósforo\\n- Nunca diagnosticar; sempre sugerir consulta médica para alterações significativas\\n\\nMemória do paciente (Zep):\\n{{ $json.memory?.context ?? 'Sem histórico anterior registrado.' }}\\n\\nResponda em português brasileiro. Seja conciso (máximo 3 parágrafos) quando for mensagem de texto simples.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('node_normalize_transcription').item?.json?.content ?? $json.content }}\"\n    }\n  ]\n}"
             }
           ]
         },
         "options": {}
       },
       "id": "node_claude_sofia",
-      "name": "Claude — Dr. Sofia (Raciocínio Clínico)",
+      "name": "Claude — Dr. João Holanda (Raciocínio Clínico)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [2120, 400]
     },
     {
       "parameters": {
-        "jsCode": "// Extrai o texto da resposta do Claude\nconst response = $input.item.json;\nconst text = response.content?.[0]?.text ?? 'Não consegui processar sua mensagem. Pode repetir?';\n\nreturn [{ json: { sofiaResponse: text } }];"
+        "jsCode": "// Extrai o texto da resposta do Claude\nconst response = $input.item.json;\nconst text = response.content?.[0]?.text ?? 'Não consegui processar sua mensagem. Pode repetir?';\n\nreturn [{ json: { joaoResponse: text } }];"
       },
-      "id": "node_extract_sofia_response",
-      "name": "Extrair Resposta da Dr. Sofia",
+      "id": "node_extract_joao_response",
+      "name": "Extrair Resposta da Dr. João Holanda",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [2360, 400]
@@ -339,7 +339,7 @@
           "parameters": [
             {
               "name": "body",
-              "value": "={\n  \"text\": \"{{ $json.sofiaResponse }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.6,\n    \"similarity_boost\": 0.8,\n    \"style\": 0.2,\n    \"use_speaker_boost\": true\n  }\n}"
+              "value": "={\n  \"text\": \"{{ $json.joaoResponse }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.6,\n    \"similarity_boost\": 0.8,\n    \"style\": 0.2,\n    \"use_speaker_boost\": true\n  }\n}"
             }
           ]
         },
@@ -348,7 +348,7 @@
         }
       },
       "id": "node_elevenlabs_tts",
-      "name": "ElevenLabs — TTS (Voz Dr. Sofia)",
+      "name": "ElevenLabs — TTS (Voz Dr. João Holanda)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [2600, 300]
@@ -375,7 +375,7 @@
         "options": {}
       },
       "id": "node_send_audio_wa",
-      "name": "Enviar Áudio WhatsApp (Dr. Sofia)",
+      "name": "Enviar Áudio WhatsApp (Dr. João Holanda)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [2840, 300]
@@ -395,7 +395,7 @@
           "parameters": [
             {
               "name": "body",
-              "value": "={\n  \"number\": \"{{ $('node_parse_text').item?.json?.from ?? $('node_parse_audio').item?.json?.from ?? $('node_parse_media').item?.json?.from }}\",\n  \"options\": { \"delay\": 500 },\n  \"textMessage\": {\n    \"text\": \"{{ $json.sofiaResponse }}\"\n  }\n}"
+              "value": "={\n  \"number\": \"{{ $('node_parse_text').item?.json?.from ?? $('node_parse_audio').item?.json?.from ?? $('node_parse_media').item?.json?.from }}\",\n  \"options\": { \"delay\": 500 },\n  \"textMessage\": {\n    \"text\": \"{{ $json.joaoResponse }}\"\n  }\n}"
             }
           ]
         },
@@ -423,7 +423,7 @@
           "parameters": [
             {
               "name": "body",
-              "value": "={\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('node_parse_text').item?.json?.content ?? $('node_normalize_transcription').item?.json?.content ?? '[mídia]' }}\",\n      \"role_type\": \"user\"\n    },\n    {\n      \"role\": \"Dr. Sofia\",\n      \"content\": \"{{ $('node_extract_sofia_response').item.json.sofiaResponse }}\",\n      \"role_type\": \"assistant\"\n    }\n  ]\n}"
+              "value": "={\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('node_parse_text').item?.json?.content ?? $('node_normalize_transcription').item?.json?.content ?? '[mídia]' }}\",\n      \"role_type\": \"user\"\n    },\n    {\n      \"role\": \"Dr. João Holanda\",\n      \"content\": \"{{ $('node_extract_joao_response').item.json.joaoResponse }}\",\n      \"role_type\": \"assistant\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -448,7 +448,7 @@
             "pushName": "={{ $('node_parse_text').item?.json?.pushName ?? 'Edilson' }}",
             "messageType": "={{ $('node_parse_text').item?.json?.messageType ?? 'audio/midia' }}",
             "patientMessage": "={{ $('node_parse_text').item?.json?.content ?? $('node_normalize_transcription').item?.json?.content ?? '[mídia enviada]' }}",
-            "sofiaResponse": "={{ $('node_extract_sofia_response').item.json.sofiaResponse }}"
+            "joaoResponse": "={{ $('node_extract_joao_response').item.json.joaoResponse }}"
           }
         },
         "options": {}
@@ -461,7 +461,7 @@
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "google_sheets_cred",
-          "name": "Google Sheets (Dr. Sofia)"
+          "name": "Google Sheets (Dr. João Holanda)"
         }
       }
     }
@@ -530,29 +530,29 @@
     },
     "Zep — Buscar Memória do Paciente": {
       "main": [
-        [{ "node": "Claude — Dr. Sofia (Raciocínio Clínico)", "type": "main", "index": 0 }]
+        [{ "node": "Claude — Dr. João Holanda (Raciocínio Clínico)", "type": "main", "index": 0 }]
       ]
     },
-    "Claude — Dr. Sofia (Raciocínio Clínico)": {
+    "Claude — Dr. João Holanda (Raciocínio Clínico)": {
       "main": [
-        [{ "node": "Extrair Resposta da Dr. Sofia", "type": "main", "index": 0 }]
+        [{ "node": "Extrair Resposta da Dr. João Holanda", "type": "main", "index": 0 }]
       ]
     },
-    "Extrair Resposta da Dr. Sofia": {
+    "Extrair Resposta da Dr. João Holanda": {
       "main": [
         [
-          { "node": "ElevenLabs — TTS (Voz Dr. Sofia)", "type": "main", "index": 0 },
+          { "node": "ElevenLabs — TTS (Voz Dr. João Holanda)", "type": "main", "index": 0 },
           { "node": "Enviar Texto WhatsApp (fallback)", "type": "main", "index": 0 },
           { "node": "Zep — Salvar Memória da Interação", "type": "main", "index": 0 }
         ]
       ]
     },
-    "ElevenLabs — TTS (Voz Dr. Sofia)": {
+    "ElevenLabs — TTS (Voz Dr. João Holanda)": {
       "main": [
-        [{ "node": "Enviar Áudio WhatsApp (Dr. Sofia)", "type": "main", "index": 0 }]
+        [{ "node": "Enviar Áudio WhatsApp (Dr. João Holanda)", "type": "main", "index": 0 }]
       ]
     },
-    "Enviar Áudio WhatsApp (Dr. Sofia)": {
+    "Enviar Áudio WhatsApp (Dr. João Holanda)": {
       "main": [[]]
     },
     "Enviar Texto WhatsApp (fallback)": {
