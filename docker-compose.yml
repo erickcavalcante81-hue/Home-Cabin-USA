@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: superskill_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-superskill}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-superskill_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-superskill_ia}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-superskill} -d ${POSTGRES_DB:-superskill_ia}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: superskill_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: superskill_backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-superskill}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-superskill_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-superskill_ia}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_QUEUE: ${REDIS_QUEUE:-eventos_operacionais}
+      REDIS_PUBSUB_CHANNEL: ${REDIS_PUBSUB_CHANNEL:-dashboard_broadcast}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  ai-engine:
+    build:
+      context: ./ai-engine
+    container_name: superskill_ai_engine
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_QUEUE: ${REDIS_QUEUE:-eventos_operacionais}
+      AI_TICK_INTERVAL_SECONDS: ${AI_TICK_INTERVAL_SECONDS:-2}
+      AI_NUM_CAMERAS: ${AI_NUM_CAMERAS:-14}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ai-engine:/app
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: superskill_frontend
+    environment:
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000/ws/dashboard}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
