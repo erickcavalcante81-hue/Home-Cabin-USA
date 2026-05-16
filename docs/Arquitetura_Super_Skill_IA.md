@@ -103,7 +103,56 @@ Copie e cole estes prompts sequencialmente no terminal do Claude Code para const
 
 ---
 
-## 6. Fluxo de Dados (End-to-End)
+## 6. Dimensionamento — Braga Veículos (Hiperpersonalização)
+
+Configuração real do cliente extraída do *Relatório Consolidado de
+Infraestrutura* (Ramos Ferreira + Djalma Batista):
+
+| Unidade            | Boxes | C/ Elevador | S/ Elevador | Mecânicos | Auxiliares | Alinham. | Balanc. |
+| ------------------ | :---: | :---------: | :---------: | :-------: | :--------: | :------: | :-----: |
+| Ramos Ferreira     |  18   |     16      |      2      |    10     |     0      |    1     |    1    |
+| Djalma Batista     |   9   |      3      |      6      |     2     |     2      |    1     |    1    |
+| **Total**          |  27   |     19      |      8      |    12     |     2      |    2     |    2    |
+
+### Topologia de câmeras proposta
+
+- **Ramos Ferreira (18 boxes):** ~22 câmeras 4K
+  - 18 cobrindo um box cada (zenital, captura QR Code A4 no teto)
+  - 2 sobre as máquinas de alinhamento + balanceamento (medição de fila)
+  - 1 dedicada ao **Boqueta de Peças** (entrada/saída de peças e mecânicos)
+  - 1 panorâmica de pátio (ReID + handoff entre câmeras)
+
+- **Djalma Batista (9 boxes):** ~13 câmeras 4K
+  - 9 zenitais por box
+  - 2 sobre alinhamento + balanceamento
+  - 1 dedicada ao Boqueta de Peças
+  - 1 panorâmica
+
+- **Total: ~35 câmeras** distribuídas em **2 edges físicos**, sincronizando
+  para uma Torre de Controle única.
+
+### Módulos de IA específicos da Braga
+
+| Módulo                          | O que mede                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `BoxOccupancyDetector`          | Ocupação por box (c/ elevador × s/ elevador) e tempo médio de uso         |
+| `BoquetaFlowDetector`           | Tempo entre mecânico chegar no Boqueta e sair com a peça (Down Time)      |
+| `EquipmentQueueDetector`        | Fila virtual nas máquinas de alinhamento e balanceamento                  |
+| `OSAttributionDetector`         | Cruza presença (mecânico × veículo × box) com OS para HF real             |
+| `CrossUnitComparator`           | Indicadores comparados Ramos Ferreira × Djalma Batista                    |
+
+### KPIs hiperpersonalizados (foco financeiro)
+
+1. **Down Time médio por OS** (alvo: -40%)
+2. **Tempo de Atendimento no Boqueta de Peças** (alvo: -60%)
+3. **Taxa de Ocupação de Box** com/sem elevador (alvo: +30%)
+4. **Horas Faturadas (HF) reais × HF apuradas hoje** (alvo: +20%)
+5. **Fila nas máquinas críticas** (alinhamento/balanceamento)
+6. **Comparativo cruzado** entre as 2 unidades
+
+---
+
+## 7. Fluxo de Dados (End-to-End)
 
 ```
 [Câmera 4K RTSP]                          (Borda)
