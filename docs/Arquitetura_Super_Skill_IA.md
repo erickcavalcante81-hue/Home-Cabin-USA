@@ -1,16 +1,52 @@
-# Arquitetura de Sistema: Super Skill IA (Guia para Vibe Coding com Claude Code)
+# Arquitetura de Sistema — Super Skill IA · by Conecta Market Hub
 
-Este documento atua como o **Master Prompt / Contexto Estrutural** para desenvolver o sistema "Super Skill IA" utilizando a abordagem de *Vibe Coding* (programação guiada por intenção natural) através do **Claude Code** (ou agents similares).
+> **Documento técnico interno.** Master Prompt e contexto estrutural para desenvolvimento do **Super Skill IA**, produto da **Conecta Market Hub**, usando *Vibe Coding* via Claude Code.
+
+> ⚠️ **Não é material apresentável ao cliente.** Este documento nomeia explicitamente a stack interna (fornecedor de visão computacional, brokers, modelos). Para terminologia pública (PPTX, dashboard, propostas), consulte [`design.md` — Seções 8.4, 9 e 10](../design.md): use **Motor de Visão Computacional**, **Inteligência de Negócio**, **Barramento de Eventos** e **Bridge Semântica**.
 
 ---
 
-## 1. Contexto do Projeto (O "Vibe" Geral)
+## 0. Posicionamento de Marca
 
-**Objetivo:** Transformar o chão de fábrica de uma oficina automotiva (4 unidades, 40 colaboradores, 15+ serviços simultâneos) em um **Gêmeo Digital** em tempo real.
+| Eixo                          | Posicionamento                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| **Produto comercial**         | Super Skill IA                                                                  |
+| **Empresa / dono da marca**   | Conecta Market Hub                                                              |
+| **Cliente atual em proposta** | Braga Veículos (Ramos Ferreira + Djalma Batista, 27 boxes, 14 produtivos)       |
+| **Modelo de entrega**         | White-label · stack interna invisível para o cliente final                      |
+| **Camadas modulares**         | Motor de Visão Computacional (captura/CV) + Inteligência de Negócio (Super Skill IA) |
 
-**O Problema:** Atualmente a operação tem um "pátio cego" (20% de visibilidade), causando 10% de retrabalho e 12% de desperdício.
+### 0.1 Dicionário Interno → Público
 
-**A Solução:** Um sistema que utiliza 14 câmeras 4K processando dados via Inteligência Artificial (YOLOv8, Pose Estimation, ReID) para rastrear carros (via QR Code A4 no teto) e funcionários (por marcadores no uniforme), cruzando esses dados para deduzir qual atividade produtiva está acontecendo.
+A coluna da esquerda é usada **somente** dentro deste repositório (código, docker-compose, comentários técnicos). A coluna da direita é o que aparece para o cliente.
+
+| Interno (este repo)               | Público (PPTX / dashboard / proposta)        |
+| --------------------------------- | -------------------------------------------- |
+| WEG Vision AI                     | Motor de Visão Computacional                 |
+| MQTT broker / Mosquitto           | Barramento de Eventos                        |
+| Tópico `weg/braga/...`            | Tópico `vision/braga/...`                    |
+| `mqtt_bridge.py`                  | Bridge Semântica                             |
+| Modelos YOLOv8 / Pose / ReID      | Motor de detecção proprietário               |
+| "integração com fornecedor"       | "arquitetura modular Conecta Market Hub"     |
+
+---
+
+## 1. Contexto do Projeto (Cliente Atual: Braga Veículos)
+
+**Objetivo:** Entregar o **Super Skill IA**, produto white-label da Conecta Market Hub, como **Gêmeo Digital em tempo real** das 2 unidades da Braga Veículos (Ramos Ferreira + Djalma Batista) — 27 boxes operacionais, 12 mecânicos produtivos + 2 auxiliares, com Boqueta de Peças instrumentada como diferencial.
+
+**A Dor:** Hoje o pátio é cego — Down Time invisível, Boqueta de Peças sem métrica, desbalanço Ramos × Djalma sem comparativo objetivo, máquinas-gargalo (2 alinhamentos + 2 balanceamentos) sem fila instrumentada.
+
+**A Solução:** Solução em **duas camadas modulares** sob a mesma marca:
+
+1. **Motor de Visão Computacional** (camada industrial, on-premise por unidade)
+   — Conecta nas ~35 câmeras IP/RTSP existentes
+   — Detecta pessoas, veículos, EPI, contagens e padrões operacionais
+   — Publica eventos no Barramento de Eventos
+2. **Inteligência de Negócio** (Super Skill IA propriamente dito)
+   — Bridge Semântica traduz eventos → domínio Braga (mecânico, OS, box, peça)
+   — Módulos exclusivos: BoxOccupancy, BoquetaFlow, EquipmentQueue, OSAttribution, CrossUnitComparator
+   — Torre de Controle ao vivo (Next.js + WebSocket) com toggle Ramos × Djalma
 
 ---
 
@@ -184,13 +220,16 @@ Infraestrutura* (Ramos Ferreira + Djalma Batista):
 
 ---
 
-## 8. Integração com WEG Vision AI (Modo Híbrido)
+## 8. Integração com WEG Vision AI (Modo Híbrido) — INTERNO
+
+> 🔒 **Nomenclatura técnica interna.** Em **qualquer material apresentável ao cliente**, esta camada é chamada apenas de **Motor de Visão Computacional** — nunca pelo nome do fornecedor. Esta seção existe apenas para orientar a integração técnica feita pelo time da Conecta Market Hub.
 
 A partir do diagnóstico do cliente Braga Veículos, identificamos que adotar o
 **WEG Vision AI** como camada de captura/inferência de visão computacional
 reduz substancialmente a complexidade do projeto, ao mesmo tempo em que mantém
 toda a nossa camada de inteligência de negócio (módulos de Boqueta, KPIs,
-comparativo Ramos × Djalma, dashboard).
+comparativo Ramos × Djalma, dashboard) — que é **exatamente** o que diferencia
+o produto Super Skill IA no mercado.
 
 ### O que o WEG Vision AI entrega de forma nativa
 
@@ -266,5 +305,94 @@ oficial do produto):
 
 O `ai-engine` desenvolvido no projeto continua disponível como caminho
 alternativo (mock + OpenCV + YOLOv8) caso o cliente opte por não
-contratar o WEG Vision AI, garantindo independência tecnológica.
+contratar a stack do fornecedor, garantindo independência tecnológica
+e preservando a proposta white-label da Conecta Market Hub.
+
+---
+
+## 9. Mapeamento Repo → Apresentação (referência rápida)
+
+Quando você for produzir qualquer artefato apresentável (slide, screen do
+dashboard, e-mail comercial, vídeo, demo), use sempre o termo da coluna
+**Apresentação**. Os identificadores reais ficam no código e neste documento.
+
+| Componente real (repo)               | Apresentação ao cliente                          | Onde aparece              |
+| ------------------------------------ | ------------------------------------------------ | ------------------------- |
+| `ai-engine/` + WEG Vision AI         | **Motor de Visão Computacional**                 | PPTX slides 4, 5, 6, 8    |
+| MQTT broker (Mosquitto)              | **Barramento de Eventos**                        | PPTX slide 6              |
+| Tópicos `weg/braga/*/eventos`        | Tópicos `vision/braga/*/operacionais`            | PPTX slide 6, dashboard   |
+| `backend/app/mqtt_bridge.py`         | **Bridge Semântica**                             | PPTX slides 4, 6          |
+| `backend/app/worker.py` + PostgreSQL | **Inteligência de Negócio · Super Skill IA**    | PPTX slides 4, 5          |
+| `backend/app/routers/ws.py`          | **Torre de Controle ao vivo**                    | PPTX slides 6, 10         |
+| `frontend/` (Next.js)                | **Dashboard Super Skill IA**                     | PPTX slide 10             |
+| Stack interna do fornecedor          | "Stack industrial consolidada"                   | PPTX slides 12, 13        |
+
+### 9.1 Status visual no dashboard
+
+| Estado interno                       | Texto exibido               |
+| ------------------------------------ | --------------------------- |
+| MQTT bridge conectado + worker OK    | `● IA ATIVA`                |
+| Bridge caída / reconectando          | `● RECONECTANDO`            |
+| Worker fora                          | `● OFFLINE`                 |
+
+Sem citar fornecedor em qualquer um dos estados.
+
+---
+
+## 10. Roadmap Técnico (alinhado à PPTX v4)
+
+| Fase | Semanas | Entrega técnica                                                                                                  |
+| :--: | :-----: | ---------------------------------------------------------------------------------------------------------------- |
+|  1   |  1–2    | Edge instalado na Djalma · Motor de Visão configurado · `mqtt_bridge.py` + Redis + PostgreSQL rodando            |
+|  2   |  3–4    | Módulos de negócio ativos: `BoquetaFlow`, `BoxOccupancy`, `EquipmentQueue`, `OSAttribution`                      |
+|  3   |  5–6    | Dashboard Next.js entregue · WebSocket ao vivo · Validação com gestor Djalma                                     |
+|  4   |  7–9    | Rollout em Ramos Ferreira · `CrossUnitComparator` ON · Migração + handoff                                        |
+
+**Piloto validado em 6 semanas · Operação completa em 9 semanas.**
+
+---
+
+## 11. Estrutura atualizada do repositório
+
+```
+Home-Cabin-USA/
+├── design.md                              ← Design System v1.1 (white-label CMH)
+├── docs/
+│   ├── Arquitetura_Super_Skill_IA.md     ← este documento (interno)
+│   └── Super_Skill_IA_Braga_v4_ConectaMH.pptx  ← entregável ao CEO
+├── docker-compose.yml                     ← inclui profile "weg" p/ Mosquitto
+├── .env.example
+├── backend/
+│   └── app/
+│       ├── main.py                        ← lifespan c/ worker + ws + mqtt_bridge
+│       ├── mqtt_bridge.py                 ← Bridge Semântica (interno)
+│       ├── worker.py
+│       ├── models.py                      ← Funcionario, Veiculo, EventoOperacional
+│       ├── routers/dashboard.py
+│       └── routers/ws.py
+├── ai-engine/                             ← fallback se cliente não contratar Motor de Visão
+└── frontend/                              ← Dashboard Torre de Controle
+```
+
+---
+
+## 12. Changelog
+
+- **v1.2 — Posicionamento white-label Conecta Market Hub.**
+  - Seção 0 nova: posicionamento de marca + dicionário interno↔público.
+  - Seção 1 reescrita para o cliente real (Braga Veículos), com a narrativa em 2 camadas modulares.
+  - Seção 8 (WEG) explicitamente marcada como **nomenclatura interna**.
+  - Seções 9, 10 e 11 novas: mapeamento repo→apresentação, roadmap técnico, estrutura do repo.
+  - Cross-reference para `design.md` Seções 8.4, 9 e 10.
+  - Alinhado à `Super_Skill_IA_Braga_v4_ConectaMH.pptx`.
+
+- **v1.1 — Integração com fornecedor de visão computacional.**
+  - Seção 8 nova: modo híbrido com MQTT bridge.
+  - `backend/app/mqtt_bridge.py` e perfil docker `weg` adicionados.
+
+- **v1.0 — Hiperpersonalização Braga Veículos.**
+  - Seções 6 e 7 com dimensionamento real (27 boxes, 14 produtivos, 2 unidades).
+  - Módulos de negócio Braga definidos.
+
+- **v0.1 — Arquitetura inicial.** Stack base FastAPI + Redis + PostgreSQL + Next.js.
 
