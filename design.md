@@ -1,6 +1,8 @@
-# Super Skill IA — Design System
+# Super Skill IA · by Conecta Market Hub — Design System
 
-> Sistema de design original do **Super Skill IA**, inspirado em convenções amplamente difundidas no segmento *automotive premium* e *industrial tech*. Não reproduz marcas, fontes ou imagens proprietárias de terceiros — apenas adota padrões de hierarquia, contraste e ritmo visuais consagrados na indústria.
+> Sistema de design original do **Super Skill IA**, produto da **Conecta Market Hub**. Inspirado em convenções amplamente difundidas no segmento *automotive premium* e *industrial tech*. Não reproduz marcas, fontes ou imagens proprietárias de terceiros — apenas adota padrões de hierarquia, contraste e ritmo visuais consagrados na indústria.
+
+**Posicionamento de marca:** o Super Skill IA é apresentado ao cliente final como **solução proprietária da Conecta Market Hub**. A stack técnica que sustenta a camada de visão computacional não é exposta no material apresentável (PPTX, dashboard, propostas) — apenas na documentação técnica interna do repositório, destinada ao time de engenharia.
 
 ---
 
@@ -212,31 +214,90 @@ Usar fotografia *stock* genérica (operários com EPI, oficina iluminada, elevad
 
 Para comparar Ramos Ferreira × Djalma Batista (ou qualquer par): mesma escala, mesmas unidades, cor distinta por unidade (`neon-cyan` vs `neon-violet`). Nunca usar cores semânticas (verde/vermelho) na comparação de unidades — confunde com "uma é boa, outra é ruim".
 
+### 8.4 Posicionamento de marca (regra crítica)
+
+Em **toda peça apresentável ao cliente final** (PPTX, dashboard, proposta comercial, demos, vídeos), o produto é apresentado como **solução proprietária da Conecta Market Hub**. Não citar nominalmente fornecedores que compõem a stack interna.
+
+- Header / capa: `Super Skill IA`
+- Assinatura: `by Conecta Market Hub`
+- Rodapé: `SUPER SKILL IA · BY CONECTA MARKET HUB · PROPOSTA [CLIENTE] · CONFIDENCIAL`
+
 ---
 
-## 9. Política de uso de marcas e imagens de terceiros
+## 9. Nomenclatura White-Label
 
-O Super Skill IA é um produto **vendor-agnóstico**. Mesmo quando integramos com **WEG Vision AI**, **Hikvision**, **Axis**, ou qualquer outra plataforma:
+O produto é apresentado em **duas camadas modulares** sob a marca única Conecta Market Hub. Use estes termos exatos em todo material apresentável:
 
-| Permitido                                                              | Proibido                                                                  |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Mencionar o nome do produto em texto corrido (uso nominativo)          | Reproduzir o logotipo oficial do fornecedor                               |
-| Citar especificações públicas extraídas de documentação oficial         | Copiar trechos longos do site/datasheet sem reescrever                    |
-| Descrever a integração técnica (protocolo MQTT, RTSP, REST)             | Implicar parceria ou endosso oficial sem contrato                         |
-| Usar nossas próprias capturas de tela do nosso dashboard                | Usar capturas de tela de produtos concorrentes/parceiros                  |
-| Silhuetas vetoriais genéricas de veículos                              | Fotos de modelos específicos de Chevrolet, BMW, etc. com marca visível    |
+| Camada                                | Termo público (PPTX, dashboard, cliente)    | Cor de marca   |
+| ------------------------------------- | ------------------------------------------- | -------------- |
+| Captura RTSP + inferência on-premise  | **Motor de Visão Computacional**            | `ink-100`      |
+| Lógica de negócio + KPIs + dashboard  | **Inteligência de Negócio** (`Super Skill IA`) | `neon-cyan` |
+| Mensageria entre camadas              | **Barramento de Eventos**                   | `neon-amber`   |
+| Tópicos do barramento (exemplo)       | `vision/<cliente>/<unidade>/operacionais`   | —              |
+
+### 9.1 Dicionário Interno → Público
+
+Use a coluna da direita em qualquer artefato que sai para o cliente. A coluna da esquerda só aparece no repositório técnico (arquitetura, código, docker-compose), nunca em material apresentável.
+
+| Termo interno (repo)               | Termo público (apresentação)                |
+| ---------------------------------- | ------------------------------------------- |
+| Nome comercial do fornecedor de CV | **Motor de Visão Computacional**            |
+| MQTT broker / Mosquitto            | **Barramento de Eventos**                   |
+| Tópico `weg/...`                   | Tópico `vision/...`                         |
+| MQTT Bridge                        | **Bridge Semântica**                        |
+| "stack do fornecedor X"            | "stack industrial consolidada"              |
+| "integração com fornecedor"        | "arquitetura modular Conecta Market Hub"    |
+| Modelo YOLOv8 / Pose Estimation    | "motor de detecção proprietário"            |
+
+### 9.2 Status indicadores
+
+- **Em material público:** `● IA ATIVA` (sem citar provedor)
+- **Em logs internos / dev:** identificadores reais permitidos
+
+### 9.3 Slides nominais (na PPTX v4)
+
+| Slide | Termo correto                                                |
+| ----- | ------------------------------------------------------------ |
+| Capa  | "Super Skill IA" · subtítulo "solução Conecta Market Hub"    |
+| 4     | "Nossa solução proprietária: visão computacional + inteligência de negócio" |
+| 5     | "Arquitetura Modular · As duas camadas da solução Conecta Market Hub" |
+| 6     | "Motor de Visão Computacional · Inferência On-Premise"       |
+| 8     | "Motor de visão detecta entrada e identifica..."             |
+| 13    | "Stack industrial consolidada"                               |
+| 14    | "Super Skill IA · by Conecta Market Hub"                     |
+
+---
+
+## 10. Política de uso de marcas e imagens de terceiros
+
+O Super Skill IA é **vendor-agnóstico por arquitetura**, mas **vendor-invisível por posicionamento**: a marca aparente é sempre Conecta Market Hub. Mesmo quando integramos com qualquer fornecedor de visão computacional ou de hardware:
+
+| Permitido (apenas em docs técnicas internas)                            | Proibido em qualquer material apresentável                            |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Citar nome do fornecedor em arquitetura técnica do repo                 | Citar nome do fornecedor de visão em PPTX, dashboard ou proposta        |
+| Descrever protocolo (MQTT, RTSP, REST) em comentários de código         | Reproduzir o logotipo oficial de qualquer fornecedor                    |
+| Capturas de tela do **nosso** dashboard (assinado Conecta Market Hub)   | Capturas de tela de produtos de fornecedores ou concorrentes            |
+| Silhuetas vetoriais genéricas de veículos (blueprint, line art)         | Fotos de modelos específicos de Chevrolet, BMW, etc. com marca visível  |
+| Padrões de cor e tipografia inspirados em convenções de gênero           | Reprodução literal de fontes proprietárias (BMW Type, Chevrolet Sans…)  |
 
 Quando precisar de imagem real de carro para o cliente Braga Veículos, **use fotos do próprio frota/pátio dele** (após autorização por escrito), não da Chevrolet ou BMW. Isso reforça a personalização e elimina o risco jurídico.
 
 ---
 
-## 10. Referências para estudo (não cópia)
+## 11. Referências para estudo (não cópia)
 
 Padrões observáveis publicamente que **inspiraram** este sistema (sem cópia literal):
 
 - Painéis HUD de telemetria automotiva (cantos retos, paleta carbono + acento neon).
-- Documentação de plataformas industriais como **WEG Vision AI** (densidade informacional, KPIs em destaque).
+- Convenções de documentação de plataformas industriais de visão computacional (densidade informacional, KPIs em destaque, layout multi-coluna).
 - Convenções tipográficas de *automotive premium digital* (capitalização ampla, tracking pronunciado em labels).
 - Princípios de Material Design e IBM Carbon Design System (open source, livres para inspirar).
 
 Tudo o que está acima é **estilo de gênero** — não propriedade de uma marca específica.
+
+---
+
+## 12. Changelog
+
+- **v1.1 — White-label Conecta Market Hub.** Adição das seções 8.4 (posicionamento de marca), 9 (nomenclatura white-label com dicionário interno → público) e atualização da seção 10 (política de marcas com regra de vendor-invisível por posicionamento). Aplicado na PPTX `Super_Skill_IA_Braga_v4_ConectaMH.pptx`.
+- **v1.0 — Sistema inicial.** Paleta carbono+neon, tipografia Inter/JetBrains Mono, grid 4px, componentes, motion, política de marcas.
