@@ -29,6 +29,16 @@ services:
       timeout: 5s
       retries: 10
 
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: superskill_mqtt
+    ports:
+      - "1883:1883"
+    command: >
+      sh -c "printf 'listener 1883\nallow_anonymous true\n' > /mosquitto/config/mosquitto.conf
+      && mosquitto -c /mosquitto/config/mosquitto.conf"
+    profiles: ["weg"]
+
   backend:
     build:
       context: ./backend

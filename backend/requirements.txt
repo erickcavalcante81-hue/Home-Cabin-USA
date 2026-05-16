@@ -7,3 +7,4 @@ pydantic-settings==2.5.2
 redis==5.0.8
 websockets==13.0.1
 python-dotenv==1.0.1
+asyncio-mqtt==0.16.2

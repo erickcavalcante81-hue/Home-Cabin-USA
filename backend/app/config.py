@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     redis_queue: str = "eventos_operacionais"
     redis_pubsub_channel: str = "dashboard_broadcast"
 
+    mqtt_enabled: bool = False
+    mqtt_host: str = "mqtt"
+    mqtt_port: int = 1883
+    mqtt_username: str = ""
+    mqtt_password: str = ""
+    mqtt_topics: str = "weg/braga/ramos/eventos,weg/braga/djalma/eventos"
+
     @property
     def database_url(self) -> str:
         return (

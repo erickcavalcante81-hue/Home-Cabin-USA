@@ -181,3 +181,90 @@ Infraestrutura* (Ramos Ferreira + Djalma Batista):
                  ▼
         [frontend: Dashboard]              (Torre de Controle)
 ```
+
+---
+
+## 8. Integração com WEG Vision AI (Modo Híbrido)
+
+A partir do diagnóstico do cliente Braga Veículos, identificamos que adotar o
+**WEG Vision AI** como camada de captura/inferência de visão computacional
+reduz substancialmente a complexidade do projeto, ao mesmo tempo em que mantém
+toda a nossa camada de inteligência de negócio (módulos de Boqueta, KPIs,
+comparativo Ramos × Djalma, dashboard).
+
+### O que o WEG Vision AI entrega de forma nativa
+
+Segundo a documentação pública do produto (fonte: blog WEG Digital e página
+oficial do produto):
+
+- Conexão direta a **câmeras IP/analógicas via RTSP**, aproveitando a
+  infraestrutura existente do cliente.
+- Inferência on-premise (instalado em CPU local dedicada).
+- Casos de uso suportados: perdas de manufatura, logística, qualidade,
+  segurança (EPI, perímetro), contagem e padrões operacionais.
+- Geração de eventos publicados via **protocolo MQTT**, exportação para
+  CSV, dashboards próprios, disparo de ações automatizadas.
+- Integração nativa com painéis elétricos, CLPs e camadas industriais
+  (MES/ERP).
+
+### Por que isso muda nosso projeto
+
+| Antes (sem WEG)                                    | Com WEG Vision AI                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------- |
+| Treinamos YOLOv8 / Pose Estimation / ReID nós mesmos | WEG fornece detecção de pessoas, veículos, EPI prontas             |
+| Gerenciamos captura RTSP de 35 câmeras             | WEG faz captura + buffer + reconnect                                |
+| Risco técnico em modelos de CV                     | Risco transferido para fornecedor consolidado                       |
+| ~5 semanas para AI engine funcional                | ~1 semana de bridge MQTT → nossa fila                               |
+| Foco diluído entre CV e produto                    | Foco 100% em **lógica de negócio Braga**                            |
+
+### Arquitetura híbrida resultante
+
+```
+                ┌────────────────────────────────────────────┐
+                │  WEG VISION AI  (instância por unidade)    │
+                │  · Ingest RTSP das ~35 câmeras             │
+                │  · Inferência (pessoas, veículos, EPI)     │
+                │  · Eventos publicados via MQTT             │
+                └────────────────────┬───────────────────────┘
+                                     │ MQTT topics:
+                                     │   weg/braga/ramos/eventos
+                                     │   weg/braga/djalma/eventos
+                                     ▼
+                ┌────────────────────────────────────────────┐
+                │  SUPER SKILL IA — BRIDGE MQTT              │
+                │  backend/app/mqtt_bridge.py                │
+                │  Normaliza payload WEG → EventoQueueMessage │
+                └────────────────────┬───────────────────────┘
+                                     ▼
+                       [Redis Queue: "eventos_operacionais"]
+                                     │
+                                     ▼
+                       [backend: worker.py]   ──┐
+                                 │              │
+                                 ▼              ▼
+                     [PostgreSQL]      [Redis PubSub → WebSocket]
+                                                │
+                                                ▼
+                                       [Torre de Controle]
+```
+
+### O que continua sendo NOSSO (e justifica o projeto)
+
+1. **Módulos de negócio dedicados:** `BoquetaFlowDetector`,
+   `BoxOccupancyDetector`, `EquipmentQueueDetector`, `OSAttributionDetector`,
+   `CrossUnitComparator`.
+2. **Modelagem de dados Braga:** `Funcionario`, `Veiculo`,
+   `EventoOperacional` ligados a OS e box.
+3. **Dashboard Torre de Controle** com toggle Ramos × Djalma, KPIs
+   personalizados, alertas inteligentes.
+4. **Lógica de KPI** (Down Time, HF real, tempo no Boqueta) — não vem do
+   WEG, é calculada por nós sobre o stream de eventos.
+5. **Bridge MQTT** que traduz o vocabulário WEG (entidades genéricas) para
+   o domínio Braga (mecânico, OS, box, peça).
+
+### Modo fallback (sem WEG)
+
+O `ai-engine` desenvolvido no projeto continua disponível como caminho
+alternativo (mock + OpenCV + YOLOv8) caso o cliente opte por não
+contratar o WEG Vision AI, garantindo independência tecnológica.
+

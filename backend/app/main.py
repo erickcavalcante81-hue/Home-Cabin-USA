@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
+from .mqtt_bridge import run_mqtt_bridge
 from .routers import dashboard, ws
 from .worker import run_worker
 
@@ -20,14 +21,15 @@ async def lifespan(app: FastAPI):
 
     worker_task = asyncio.create_task(run_worker(), name="redis_worker")
     pubsub_task = asyncio.create_task(ws.run_pubsub_listener(), name="ws_pubsub")
+    mqtt_task = asyncio.create_task(run_mqtt_bridge(), name="mqtt_bridge")
     logger.info("Tasks de background iniciadas.")
 
     try:
         yield
     finally:
-        for task in (worker_task, pubsub_task):
+        for task in (worker_task, pubsub_task, mqtt_task):
             task.cancel()
-        await asyncio.gather(worker_task, pubsub_task, return_exceptions=True)
+        await asyncio.gather(worker_task, pubsub_task, mqtt_task, return_exceptions=True)
         logger.info("Backend finalizado.")
 
 
