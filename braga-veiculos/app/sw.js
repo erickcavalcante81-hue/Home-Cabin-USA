@@ -1,8 +1,10 @@
-/* Braga Veículos — Service Worker (PWA offline-first)
-   Faz cache do "app shell" (HTML, ícones, scripts locais) para o app abrir
-   instantaneamente e funcionar sem internet. Requisições de outras origens
-   (Firebase/Firestore, gstatic) passam direto pela rede — não são cacheadas. */
-const CACHE = 'braga-v1';
+/* Braga Veículos — Service Worker (PWA)
+   Estratégia NETWORK-FIRST: quando há internet, sempre busca a versão mais
+   recente do app (assim as atualizações chegam sozinhas); sem internet, cai
+   no cache para continuar funcionando offline.
+   Requisições de outras origens (Firebase/Firestore, gstatic, CDN do PDF.js)
+   passam direto pela rede. */
+const CACHE = 'braga-v2';
 const CORE = [
   './',
   './index.html',
@@ -32,20 +34,18 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Só tratamos recursos da própria origem; Firebase/CDN passam direto pela rede.
+  // Só tratamos recursos da própria origem; Firebase/CDN vão direto pela rede.
   if (url.origin !== self.location.origin) return;
+  // Network-first: busca a versão nova; se falhar (offline), usa o cache.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match('./index.html'));
-    })
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
   );
 });

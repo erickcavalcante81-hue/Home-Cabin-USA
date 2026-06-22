@@ -2332,7 +2332,15 @@ if (window.CloudSync && window.CloudSync.enabled) {
 // ===== PWA: registra o service worker (instalável + offline) =====
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function (e) {
+    var hadController = !!navigator.serviceWorker.controller;   // já havia versão instalada?
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (refreshing) return; refreshing = true;
+      if (hadController) location.reload();   // recarrega só quando é ATUALIZAÇÃO (não na 1ª instalação)
+    });
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      reg.update();   // procura nova versão a cada abertura
+    }).catch(function (e) {
       console.warn('[PWA] service worker não registrou:', e);
     });
   });
