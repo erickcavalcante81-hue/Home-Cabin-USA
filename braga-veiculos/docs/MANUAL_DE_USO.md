@@ -120,19 +120,26 @@ Seu foco é confirmar a instalação (etapa 1).
 
 ## 5. Importar uma PLANILHA DE ENTREGA (vários veículos de uma vez)
 
-Para Helena/Adriano/Gerente. Cadastra a planilha do dia inteira em segundos.
+Para Helena/Adriano/Gerente. Cadastra a planilha do dia inteira em segundos —
+**de forma automática, sem precisar selecionar ou confirmar veículo por veículo**.
 
 1. Aba **Entrada** → **"+ Nova Entrada"**.
 2. Escolha a origem **"📋 Planilha de Entrega (lote)"**.
 3. **Opção A — PDF:** em **"Ler direto de um PDF"**, toque e escolha o arquivo
    (ex.: `PLANILHA DE ENTREGA - 23_06.pdf`). O app lê tudo sozinho.
    **Opção B — Colar:** cole o texto da planilha no campo de baixo.
-4. Aparece a **prévia** com todos os veículos (cliente, modelo, chassi, cor,
-   acessórios, entregador, horário). **Desmarque** os que não quer cadastrar.
-5. Toque em **"✓ Cadastrar N veículo(s)"**.
+4. O app **aplica tudo automaticamente** e mostra um **resumo**:
+   - **✅ Novos** — cadastrados direto.
+   - **🔔 Atualizados** — veículos que já existiam (mesmo chassi) e tiveram
+     alguma mudança (ex.: trocou o entregador ou o horário). O app **substitui
+     pela versão mais recente** e marca o veículo com a tag **🔔 Alterado** na
+     lista de Veículos. A tag **some quando alguém abre** o veículo.
+   - **= Sem mudança** — já estavam idênticos (nada a fazer).
 
-> O app usa o **chassi** como identificador: importar a mesma planilha de novo
-> **não duplica** — ele atualiza o que já existe e completa os acessórios.
+> O **chassi** é o identificador: reimportar a mesma planilha **não duplica**.
+> Etapa, checklists e fotos do veículo são **preservados** numa atualização —
+> só os dados da planilha (cliente, cor, vendedor, entregador, horário, data,
+> acessórios) são atualizados, e o histórico registra exatamente o que mudou.
 
 ---
 
@@ -189,6 +196,11 @@ quando voltar, sincroniza sozinho.
 
 **Funciona sem internet?**
 Sim. Você continua usando; as mudanças sobem para a nuvem quando reconectar.
+
+**O que é a tag 🔔 Alterado na lista?**
+Quando uma nova planilha é importada e um veículo que já existia teve mudança,
+o app atualiza sozinho e marca com **🔔 Alterado** para a equipe perceber. A tag
+**desaparece quando alguém abre** o veículo (no histórico fica o que mudou).
 
 **Trocar de perfil?**
 Toque no seu nome (canto superior direito) → confirme.

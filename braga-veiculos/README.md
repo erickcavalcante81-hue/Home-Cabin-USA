@@ -87,13 +87,21 @@ duas funções isoladas — `getStorage()` e `setStorage()` (em `app/index.html`
 **Importação em lote (Entrada → "Planilha de Entrega"):** dá para **subir o
 PDF** da planilha (extração automática via PDF.js, sem copiar/colar) **ou**
 colar o texto. O app extrai todos os veículos — âncora no chassi, normaliza
-cor/acessórios (corrige typos) e detecta horário/entregador —, mostra uma
-prévia para revisão e **cadastra/atualiza por chassi** (não duplica).
+cor/acessórios (corrige typos) e detecta horário/entregador — e **aplica
+automaticamente, sem seleção/confirmação**:
+
+- **Novos** → cadastrados direto.
+- **Existentes (mesmo chassi) com mudança** → **sobrescritos pela última
+  versão** e marcados com a tag **🔔 Alterado** (some ao abrir o veículo). A
+  etapa/checklists/fotos são preservados; o histórico registra o que mudou.
+- **Idênticos** → ignorados (não duplica).
+
+Ao final mostra um **resumo** (novos · atualizados · sem mudança).
 
 - Leitura do PDF: `loadPdfJs()` (CDN, precisa de internet na 1ª vez) +
   `reconstructPdfRows()` reconstrói as linhas da tabela ancorando no chassi
   (agrupa por Y, ordena por X) → texto limpo em ordem de coluna.
-- Parsing/gravação: `parsePlanilha()` / `applyPlanilhaRows()`.
+- Parsing/gravação: `parsePlanilha()` / `applyPlanilhaRows()` (com `OVERWRITE_FIELDS`).
 
 Validado contra os PDFs reais das planilhas (ex.: 23/06 → 18/18 veículos).
 Padrão dos documentos em

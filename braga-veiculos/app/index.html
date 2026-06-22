@@ -914,18 +914,15 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       </div>
     </div>
 
-    <!-- Step 3: importação em lote (planilha) -->
+    <!-- Step 3: resultado da importação em lote (aplicada automaticamente) -->
     <div id="intakeStep3" style="display:none">
       <div style="background:var(--green-bg);border-radius:10px;padding:12px;margin-bottom:14px">
-        <div style="font-weight:700;color:var(--green);font-size:14px">📋 Planilha processada</div>
-        <div style="font-size:12px;color:#166534;margin-top:3px">Revise os veículos abaixo. Desmarque os que não quer cadastrar.</div>
+        <div style="font-weight:700;color:var(--green);font-size:14px">✅ Importação concluída</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">Veículos novos foram cadastrados e os já existentes, atualizados automaticamente (com 🔔 tag de alerta na lista).</div>
       </div>
       <div id="bulkSummary" style="font-size:13px;margin-bottom:10px"></div>
       <div id="bulkList" style="max-height:46vh;overflow:auto;margin-bottom:12px"></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-secondary" onclick="intakeBack()">‹ Voltar</button>
-        <button class="btn btn-primary btn-block" id="bulkConfirmBtn" onclick="confirmPlanilhaIntake()">✓ Cadastrar veículos</button>
-      </div>
+      <button class="btn btn-primary btn-block" onclick="closeModal('intakeModal')">Concluir</button>
     </div>
   </div>
 </div>
@@ -1238,7 +1235,7 @@ function renderVehicles() {
   const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   let list = data.vehicles.filter(v => {
     if(activeStageFilter !== 'all' && v.stage !== parseInt(activeStageFilter)) return false;
-    if(search && !`${v.model} ${v.client} ${v.plate} ${v.invoice}`.toLowerCase().includes(search)) return false;
+    if(search && !`${v.model} ${v.client} ${v.plate} ${v.invoice} ${v.chassi||''}`.toLowerCase().includes(search)) return false;
     return true;
   });
   const container = document.getElementById('vehiclesList');
@@ -1254,7 +1251,7 @@ function renderVehicles() {
       <div class="vehicle-card status-${status}" onclick="openDetail(${v.id})">
         <div class="vehicle-info">
           <div>
-            <div class="vehicle-model">${v.model}${v.color?' · '+v.color:''}</div>
+            <div class="vehicle-model">${v.model}${v.color?' · '+v.color:''} ${v.changed?'<span class="badge badge-yellow" style="font-size:10px;vertical-align:middle">🔔 Alterado</span>':''}</div>
             <div class="vehicle-meta">${v.client}</div>
           </div>
           <span class="badge badge-${status==='green'?'green':status==='yellow'?'yellow':'red'}">${STAGES[v.stage].name}</span>
@@ -1279,6 +1276,7 @@ function openDetail(id) {
   const data = getStorage();
   const v = data.vehicles.find(v => v.id === id);
   if(!v) return;
+  if(v.changed){ v.changed = null; setStorage(data); }   // abriu = visto: limpa a tag 🔔
   document.getElementById('detailTitle').textContent = `${v.model} — ${v.client}`;
   const status = getStatus(v);
   document.getElementById('detailBadge').innerHTML = `<span class="badge badge-${status==='green'?'green':status==='yellow'?'yellow':'red'}">${STAGES[v.stage].name}</span>`;
@@ -1934,33 +1932,51 @@ function parsePlanilha(rawText){
     if(rec.chassi){ if(!rec.dataFaturamento&&planDate) rec.deliveryDate=planDate; rows.push(rec); } else skipped++; }
   return { date:planDate, dayLabel:dayLabel, rows:rows, skipped:skipped };
 }
+// Campos vindos da planilha que são sobrescritos pela "última versão".
+// (Mantemos etapa/checklists/histórico/defeitos — só os dados descritivos
+//  e de agendamento são atualizados.)
+const OVERWRITE_FIELDS = [
+  ['client','cliente','Cliente'], ['model','modelo','Modelo'], ['versao','versao','Versão'],
+  ['color','cor','Cor'], ['seller','vendedor','Vendedor'], ['entregador','entregador','Entregador'],
+  ['horarioEntrega','horario','Horário'], ['deliveryDate','deliveryDate','Data de entrega'],
+  ['invoiceDate','dataFaturamento','Faturamento']
+];
 function applyPlanilhaRows(rows,data,ts,user){
   data.vehicles=data.vehicles||[]; data.intakes=data.intakes||[];
   var byChassi={}; data.vehicles.forEach(function(v){ if(v.chassi) byChassi[v.chassi]=v; });
-  var novos=0,atualizados=0;
+  var novos=0, alterados=0, semMudanca=0, rel={novos:[], alterados:[]};
   rows.forEach(function(r){
     if(!r.chassi) return;
     var accObjs=(r.acessorios||[]).map(function(a){return {name:a,installed:false,installedAt:null};});
     var v=byChassi[r.chassi];
     if(v){
-      if(r.cor&&!v.color) v.color=r.cor; if(r.vendedor&&!v.seller) v.seller=r.vendedor;
-      if(r.entregador) v.entregador=r.entregador; if(r.horario) v.horarioEntrega=r.horario;
-      if(r.deliveryDate) v.deliveryDate=r.deliveryDate; if(r.dataFaturamento&&!v.invoiceDate) v.invoiceDate=r.dataFaturamento;
-      if(r.versao&&!v.versao) v.versao=r.versao;
+      // EXISTENTE: detecta mudanças e SOBRESCREVE com a última versão
+      var changes=[];
+      OVERWRITE_FIELDS.forEach(function(f){
+        var nv=r[f[1]], cur=(v[f[0]]==null?'':String(v[f[0]]));
+        if(nv!=null && nv!=='' && String(nv)!==cur){ changes.push(f[2]+': '+(cur||'—')+' → '+nv); v[f[0]]=nv; }
+      });
+      // acessórios: adiciona os novos preservando os já instalados
       v.accessories=v.accessories||[]; var have={}; v.accessories.forEach(function(a){ have[(a.name||'').toLowerCase()]=1; });
-      accObjs.forEach(function(a){ if(!have[a.name.toLowerCase()]) v.accessories.push(a); });
-      v.history=v.history||[]; v.history.push({ts:ts,action:'Atualizado via Planilha',user:user}); atualizados++;
+      var added=[]; accObjs.forEach(function(a){ if(!have[a.name.toLowerCase()]){ v.accessories.push(a); added.push(a.name); } });
+      if(added.length) changes.push('Acessórios +'+added.length+' ('+added.join(', ')+')');
+      if(changes.length){
+        v.changed = ts;   // 🔔 tag de alerta (some ao abrir o veículo)
+        v.history=v.history||[]; v.history.push({ts:ts, action:'Atualizado via Planilha — '+changes.join(' · '), user:user});
+        alterados++; rel.alterados.push({chassi:v.chassi, cliente:v.client, changes:changes});
+      } else { semMudanca++; }
     } else {
+      // NOVO: cadastra direto
       v={ id:data.nextId++, chassi:r.chassi, model:r.modelo||'', versao:r.versao||'', client:r.cliente||'',
           color:r.cor||'', plate:'', invoice:'', phone:'', invoiceDate:r.dataFaturamento||ts.split('T')[0],
           seller:r.vendedor||'', entregador:r.entregador||'', horarioEntrega:r.horario||'', deliveryDate:r.deliveryDate||null,
           obs:'', stage:0, checklists:{}, accessories:accObjs, intake:{source:'planilha',ts:ts},
           history:[{ts:ts,action:'Cadastrado via Planilha',user:user}] };
-      data.vehicles.push(v); byChassi[r.chassi]=v; novos++;
+      data.vehicles.push(v); byChassi[r.chassi]=v; novos++; rel.novos.push({chassi:v.chassi, cliente:v.client});
+      data.intakes.push({ id:(+new Date())+'-'+r.chassi, vehicleId:v.id, source:'planilha', sender:null, vehicleName:(r.modelo||'')+' — '+(r.cliente||''), ts:ts, status:'processed' });
     }
-    data.intakes.push({ id:(+new Date())+'-'+r.chassi, vehicleId:v.id, source:'planilha', sender:null, vehicleName:(r.modelo||'')+' — '+(r.cliente||''), ts:ts, status:'processed' });
   });
-  return { novos:novos, atualizados:atualizados };
+  return { novos:novos, alterados:alterados, semMudanca:semMudanca, relatorio:rel };
 }
 
 // ----- leitura automática de PDF (PDF.js) -----
@@ -2029,52 +2045,45 @@ function handlePlanilhaPdf(e){
   try { e.target.value = ''; } catch(_) {}
 }
 
-// ----- fluxo de UI da importação em lote -----
+// ----- importação em lote: APLICA AUTOMATICAMENTE (sem seleção/confirmação) -----
 function processPlanilhaIntake(){
   const raw = document.getElementById('intakeText').value;
   if(!raw.trim()){ toast('Cole o texto da planilha primeiro'); return; }
   const res = parsePlanilha(raw);
-  _bulkDate = res.date;
-  parsedPlanilha = res.rows.map((r,i)=>{ r._idx=i; r._include = !!(r.chassi && r.modelo); return r; });
-  if(parsedPlanilha.length===0){ toast('Nenhum veículo reconhecido. Cole a planilha completa (com os chassis).'); return; }
-  renderBulkList();
+  const valid = res.rows.filter(r => r.chassi);          // o chassi é a chave
+  const ignoradas = res.rows.length - valid.length;
+  if(valid.length === 0){ toast('Nenhum veículo reconhecido (sem chassi). Confira a planilha.'); return; }
+  const data = getStorage();
+  const r = applyPlanilhaRows(valid, data, new Date().toISOString(), currentUserName || currentProfile);
+  setStorage(data);
+  renderAll();
+  showPlanilhaReport(r, res.date, ignoradas);
+  toast(`✅ ${r.novos} novo(s) · 🔔 ${r.alterados} atualizado(s)`);
+}
+function showPlanilhaReport(r, date, ignoradas){
+  const dataBR = date ? date.split('-').reverse().join('/') : null;
+  document.getElementById('bulkSummary').innerHTML =
+    `${dataBR?`<div class="bulk-sub" style="margin-bottom:8px">Planilha de <b>${dataBR}</b></div>`:''}
+     <div style="display:flex;gap:6px;flex-wrap:wrap">
+       <span class="badge badge-green">✅ ${r.novos} novo(s)</span>
+       <span class="badge badge-yellow">🔔 ${r.alterados} atualizado(s)</span>
+       <span class="badge badge-blue">= ${r.semMudanca} sem mudança</span>
+       ${ignoradas?`<span class="badge badge-red">⚠️ ${ignoradas} sem chassi</span>`:''}
+     </div>`;
+  let list = '';
+  if(r.relatorio.alterados.length){
+    list += `<div style="font-weight:700;font-size:13px;margin:6px 0">🔔 Alterações aplicadas automaticamente</div>`;
+    list += r.relatorio.alterados.map(a =>
+      `<div class="bulk-row bulk-warn"><div class="bulk-main"><div class="bulk-title">${a.cliente||a.chassi}</div><div class="bulk-sub">${a.changes.join('<br>')}</div></div></div>`).join('');
+  }
+  if(r.relatorio.novos.length){
+    list += `<div style="font-weight:700;font-size:13px;margin:10px 0 6px">✅ Novos cadastrados (${r.relatorio.novos.length})</div>`;
+    list += `<div class="bulk-sub">${r.relatorio.novos.map(n=>n.cliente||n.chassi).join(' · ')}</div>`;
+  }
+  document.getElementById('bulkList').innerHTML = list;
   document.getElementById('intakeStep1').style.display='none';
   document.getElementById('intakeStep2').style.display='none';
   document.getElementById('intakeStep3').style.display='block';
-}
-function renderBulkList(){
-  const data = getStorage(); const byChassi = {}; (data.vehicles||[]).forEach(v=>{ if(v.chassi) byChassi[v.chassi]=v; });
-  document.getElementById('bulkList').innerHTML = parsedPlanilha.map(r=>{
-    const exists = r.chassi && byChassi[r.chassi];
-    const warn = !r.chassi ? 'sem chassi' : (!r.modelo ? 'sem modelo' : '');
-    return `<label class="bulk-row${warn?' bulk-warn':''}">
-      <input type="checkbox" ${r._include?'checked':''} onchange="toggleBulkRow(${r._idx},this.checked)">
-      <div class="bulk-main">
-        <div class="bulk-title">${r.cliente||'(cliente?)'} ${exists?'<span class="badge badge-blue">já existe</span>':''}</div>
-        <div class="bulk-sub">${r.modelo||'(modelo?)'} · ${r.cor||'—'} · ${r.chassi||'CHASSI?'}${warn?' · ⚠️ '+warn:''}</div>
-        <div class="bulk-sub">${r.horario?('🕒 '+r.horario+' · '):''}${r.entregador?('🚗 '+r.entregador+' · '):''}${r.acessorios.length} acessório(s)${r.vendedor?(' · '+r.vendedor):''}</div>
-      </div>
-    </label>`;
-  }).join('');
-  renderBulkSummary();
-}
-function renderBulkSummary(){
-  const data = getStorage(); const byChassi = {}; (data.vehicles||[]).forEach(v=>{ if(v.chassi) byChassi[v.chassi]=v; });
-  let novos=0, atualiza=0, sel=0;
-  parsedPlanilha.forEach(r=>{ if(r._include && r.chassi){ sel++; (byChassi[r.chassi]?atualiza++:novos++); } });
-  const dt = _bulkDate ? (' · entrega '+_bulkDate.split('-').reverse().join('/')) : '';
-  document.getElementById('bulkSummary').innerHTML =
-    `<b>${parsedPlanilha.length}</b> linha(s)${dt} — selecionados: <b>${sel}</b> (<span style="color:var(--green)">${novos} novo(s)</span>, <span style="color:var(--blue)">${atualiza} atualização(ões)</span>)`;
-  document.getElementById('bulkConfirmBtn').textContent = `✓ Cadastrar ${sel} veículo(s)`;
-}
-function toggleBulkRow(idx,val){ const r=parsedPlanilha.find(x=>x._idx===idx); if(r) r._include=val; renderBulkSummary(); }
-function confirmPlanilhaIntake(){
-  const sel = parsedPlanilha.filter(r=>r._include && r.chassi);
-  if(sel.length===0){ toast('Selecione ao menos um veículo com chassi'); return; }
-  const data = getStorage();
-  const res = applyPlanilhaRows(sel, data, new Date().toISOString(), currentUserName || currentProfile);
-  setStorage(data); closeModal('intakeModal'); renderAll();
-  toast(`✅ ${res.novos} novo(s) + ${res.atualizados} atualizado(s)`);
 }
 
 function processIntake() {
