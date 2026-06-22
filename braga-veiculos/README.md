@@ -83,12 +83,19 @@ Cada veículo é identificado pelo **`chassi`** (chave de deduplicação) e tem
 operacionais `entregador` e `horarioEntrega`. Toda a persistência passa por
 duas funções isoladas — `getStorage()` e `setStorage()` (em `app/index.html`).
 
-**Importação em lote (Entrada → "Planilha de Entrega"):** cola-se o texto de
-uma PLANILHA DE ENTREGA diária (ou de preparação) e o app extrai todos os
-veículos automaticamente — âncora no chassi, normaliza cor/acessórios (corrige
-typos) e detecta horário/entregador. Mostra uma prévia para revisão e
-**cadastra/atualiza por chassi** (não duplica). Lógica em `parsePlanilha()` /
-`applyPlanilhaRows()`. Veja o padrão dos documentos em
+**Importação em lote (Entrada → "Planilha de Entrega"):** dá para **subir o
+PDF** da planilha (extração automática via PDF.js, sem copiar/colar) **ou**
+colar o texto. O app extrai todos os veículos — âncora no chassi, normaliza
+cor/acessórios (corrige typos) e detecta horário/entregador —, mostra uma
+prévia para revisão e **cadastra/atualiza por chassi** (não duplica).
+
+- Leitura do PDF: `loadPdfJs()` (CDN, precisa de internet na 1ª vez) +
+  `reconstructPdfRows()` reconstrói as linhas da tabela ancorando no chassi
+  (agrupa por Y, ordena por X) → texto limpo em ordem de coluna.
+- Parsing/gravação: `parsePlanilha()` / `applyPlanilhaRows()`.
+
+Validado contra os PDFs reais das planilhas (ex.: 23/06 → 18/18 veículos).
+Padrão dos documentos em
 [`docs/ANALISE_PEDIDOS_E_PLANILHAS.md`](docs/ANALISE_PEDIDOS_E_PLANILHAS.md).
 
 **Sincronização em nuvem (offline-first):** quando `firebase-config.js` tem
@@ -109,8 +116,8 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
    criar o projeto Firebase, colar as chaves e publicar no Netlify — guia em
    [`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md).
 2. **Importar a frota / programação** — ✅ *pronto:* importador em lote de
-   PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi).
-   Próximo refino: importar direto do PDF/arquivo (hoje cola-se o texto).
+   PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi),
+   por **upload de PDF** (extração automática) ou colando o texto.
 3. **Persistir fotos** — chassi, avarias e placa hoje ficam no dispositivo;
    passar para o Firebase Storage.
 4. **Sync por veículo** — trocar o last-write-wins por um documento por

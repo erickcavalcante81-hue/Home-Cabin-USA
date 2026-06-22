@@ -771,6 +771,22 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
         </button>
       </div>
 
+      <!-- Planilha: upload de PDF (extração automática) -->
+      <div id="planilhaPdfBlock" style="display:none;margin-bottom:14px">
+        <div class="form-label" style="margin-bottom:6px">📄 Ler direto de um PDF (sem colar)</div>
+        <div class="drop-zone" id="planilhaDrop" onclick="document.getElementById('planilhaPdfInput').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="event.preventDefault();this.classList.remove('over');handlePlanilhaPdf({target:{files:event.dataTransfer.files}})">
+          <div style="font-size:28px;margin-bottom:6px">📄⬆️</div>
+          <div style="font-weight:600">Toque para escolher o PDF da planilha</div>
+          <div style="font-size:12px;margin-top:4px">PLANILHA DE ENTREGA / preparação · extração automática</div>
+        </div>
+        <input type="file" id="planilhaPdfInput" accept=".pdf,application/pdf" style="display:none" onchange="handlePlanilhaPdf(event)">
+        <div id="planilhaPdfStatus" style="font-size:12px;margin-top:8px;color:var(--text-light)"></div>
+        <div class="form-label" style="margin:12px 0 6px">…ou cole o texto manualmente abaixo</div>
+      </div>
+
       <!-- WhatsApp authorized sender -->
       <div id="authBlock" style="display:none;margin-bottom:16px">
         <div class="form-label" style="margin-bottom:8px">⚠️ Remetente Autorizado (obrigatório)</div>
@@ -1657,6 +1673,9 @@ function openIntakeModal() {
   document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('authBlock').style.display = 'none';
+  document.getElementById('planilhaPdfBlock').style.display = 'none';
+  document.getElementById('planilhaPdfStatus').textContent = '';
+  document.getElementById('planilhaPdfInput').value = '';
   document.getElementById('textBlock').style.display = 'none';
   document.getElementById('fileBlock').style.display = 'none';
   document.getElementById('filePreview').innerHTML = '';
@@ -1672,6 +1691,7 @@ function selectSource(src) {
   document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('src_'+src).classList.add('selected');
   document.getElementById('authBlock').style.display = src === 'whatsapp' ? 'block' : 'none';
+  document.getElementById('planilhaPdfBlock').style.display = src === 'planilha' ? 'block' : 'none';
   document.getElementById('textBlock').style.display = ['email','whatsapp','planilha'].includes(src) ? 'block' : 'none';
   document.getElementById('fileBlock').style.display = ['pdf','image'].includes(src) ? 'block' : 'none';
   const ta = document.getElementById('intakeText');
@@ -1903,6 +1923,72 @@ function applyPlanilhaRows(rows,data,ts,user){
     data.intakes.push({ id:(+new Date())+'-'+r.chassi, vehicleId:v.id, source:'planilha', sender:null, vehicleName:(r.modelo||'')+' — '+(r.cliente||''), ts:ts, status:'processed' });
   });
   return { novos:novos, atualizados:atualizados };
+}
+
+// ----- leitura automática de PDF (PDF.js) -----
+const PDFJS_VER = '4.2.67';
+let _pdfjs = null;
+function loadPdfJs(){
+  if(_pdfjs) return Promise.resolve(_pdfjs);
+  // import() dinâmico via Function evita problemas de parser e funciona em <script> clássico
+  const dynImport = new Function('u', 'return import(u)');
+  return dynImport('https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VER+'/build/pdf.min.mjs').then(lib=>{
+    lib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VER+'/build/pdf.worker.min.mjs';
+    _pdfjs = lib; return lib;
+  });
+}
+// Reconstrói as linhas da tabela ancorando no CHASSI (Y) e ordenando por X.
+// (Mesma lógica validada contra os PDFs reais das planilhas.)
+function reconstructPdfRows(items){
+  const vinRe = /\b[0-9][0-9A-HJ-NPR-Z]{16}\b/;
+  let anchors = [...new Set(items.filter(it=>vinRe.test(it.s)).map(it=>it.y))].sort((a,b)=>b-a);
+  if(!anchors.length) return items.slice().sort((a,b)=>(b.y-a.y)||(a.x-b.x)).map(i=>i.s);
+  let sp=[]; for(let i=1;i<anchors.length;i++) sp.push(anchors[i-1]-anchors[i]);
+  sp.sort((a,b)=>a-b); const med = sp.length?sp[Math.floor(sp.length/2)]:20;
+  const thr = Math.max(8, med*0.6);
+  const rows = anchors.map(()=>[]);
+  for(const it of items){
+    let best=-1,bd=1e9;
+    for(let i=0;i<anchors.length;i++){ const d=Math.abs(it.y-anchors[i]); if(d<bd){bd=d;best=i;} }
+    if(best>=0 && bd<=thr) rows[best].push(it);
+  }
+  return rows.map(r=>r.sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+}
+async function extractPlanilhaFromPdf(file){
+  const pdfjsLib = await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data:new Uint8Array(buf), isEvalSupported:false }).promise;
+  let rows=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    const items = tc.items.filter(i=>typeof i.str==='string' && i.str.trim()!=='')
+      .map(i=>({ x:i.transform[4], y:Math.round(i.transform[5]), s:i.str.trim() }));
+    rows = rows.concat(reconstructPdfRows(items));
+  }
+  let header='';
+  const dm = (file.name||'').match(/(\d{1,2})[_\-.](\d{1,2})(?:[_\-.](\d{2,4}))?/); // data do nome do arquivo
+  if(dm) header = dm[1]+'/'+dm[2]+'\n';
+  return header + rows.join('\n');
+}
+function handlePlanilhaPdf(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(!/pdf/i.test(file.type||'') && !/\.pdf$/i.test(file.name||'')){ toast('Selecione um arquivo PDF'); return; }
+  const st = document.getElementById('planilhaPdfStatus');
+  st.textContent = '⏳ Lendo o PDF...';
+  extractPlanilhaFromPdf(file).then(text=>{
+    document.getElementById('intakeText').value = text;
+    const n = (text.match(/\b[0-9][0-9A-HJ-NPR-Z]{16}\b/g)||[]).length;
+    if(n===0){ st.textContent = '⚠️ Nenhum chassi encontrado no PDF. Confira o arquivo ou cole o texto.'; toast('Não encontrei veículos nesse PDF'); return; }
+    st.textContent = `✅ PDF lido — ${n} veículo(s) encontrado(s).`;
+    processPlanilhaIntake();
+  }).catch(err=>{
+    console.warn('[PDF] falha ao extrair:', err);
+    st.textContent = '⚠️ Não consegui ler este PDF (precisa de internet na 1ª vez). Cole o texto no campo abaixo.';
+    toast('Falha ao ler o PDF — cole o texto manualmente');
+  });
+  try { e.target.value = ''; } catch(_) {}
 }
 
 // ----- fluxo de UI da importação em lote -----
