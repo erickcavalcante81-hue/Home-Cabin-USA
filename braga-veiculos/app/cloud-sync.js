@@ -4,9 +4,10 @@
    Arquitetura OFFLINE-FIRST:
    - O localStorage continua sendo o armazenamento de trabalho do app
      (rápido, funciona sem internet).
-   - Quando há configuração válida em window.FIREBASE_CONFIG, este módulo
-     espelha os dados num único documento do Firestore (braga/data) e mantém
-     TODOS os aparelhos sincronizados em tempo real (onSnapshot).
+   - Quando há configuração válida (colada no app e salva em
+     localStorage['braga_firebase_config'], OU em window.FIREBASE_CONFIG),
+     este módulo espelha os dados num único documento do Firestore
+     (braga/data) e mantém TODOS os aparelhos sincronizados (onSnapshot).
    - SEM configuração válida, tudo aqui é no-op: o app se comporta
      exatamente como antes, 100% local. Nada quebra.
 
@@ -15,8 +16,15 @@
    editando veículos diferentes. Evoluível para documento-por-veículo.
    ============================================================ */
 (function () {
-  var cfg = window.FIREBASE_CONFIG || {};
-  var hasConfig = !!(cfg.apiKey && cfg.projectId && cfg.apiKey.indexOf('COLE_') !== 0);
+  function readConfig() {
+    try {
+      var ls = localStorage.getItem('braga_firebase_config');
+      if (ls) { var c = JSON.parse(ls); if (c && c.apiKey && c.projectId) return c; }
+    } catch (e) {}
+    return window.FIREBASE_CONFIG || {};
+  }
+  var cfg = readConfig();
+  var hasConfig = !!(cfg.apiKey && cfg.projectId && String(cfg.apiKey).indexOf('COLE_') !== 0);
 
   var SDK_VERSION = '10.12.2';
   var SDK = [
@@ -28,10 +36,13 @@
 
   var CloudSync = {
     enabled: hasConfig,
+    status: hasConfig ? 'conectando' : 'desligado',   // desligado|conectando|online|erro
+    projectId: cfg.projectId || null,
     _applyingRemote: false,
     _seeded: false,
     _ref: null,
     _pushTimer: null,
+    _statusCb: null,
     _clientId: (function () {
       try {
         var k = 'braga_client_id', v = localStorage.getItem(k);
@@ -40,17 +51,22 @@
       } catch (e) { return 'anon-' + Math.random().toString(36).slice(2); }
     })(),
 
+    onStatus: function (cb) { this._statusCb = cb; try { cb(this.status); } catch (e) {} },
+    _setStatus: function (s) { this.status = s; if (this._statusCb) { try { this._statusCb(s); } catch (e) {} } },
+
     /* onRemote(dataObj) — chamado quando chega atualização de outro aparelho.
        onEmpty()         — chamado uma vez se o documento ainda não existe. */
     init: function (onRemote, onEmpty) {
       if (!this.enabled) return;
       var self = this;
+      self._setStatus('conectando');
       loadScripts(SDK, function () {
         try {
           if (!firebase.apps.length) firebase.initializeApp(cfg);
           var start = function () {
             self._ref = firebase.firestore().collection(COL).doc(DOC);
             self._ref.onSnapshot(function (snap) {
+              self._setStatus('online');
               if (!snap.exists) {
                 if (!self._seeded && typeof onEmpty === 'function') { self._seeded = true; onEmpty(); }
                 return;
@@ -61,7 +77,7 @@
               if (!d.payload) return;
               var parsed; try { parsed = JSON.parse(d.payload); } catch (e) { return; }
               if (typeof onRemote === 'function') onRemote(parsed);
-            }, function (err) { console.warn('[CloudSync] erro no onSnapshot:', err); });
+            }, function (err) { console.warn('[CloudSync] erro no onSnapshot:', err); self._setStatus('erro'); });
           };
           // Login anônimo (recomendado pelas Regras do Firestore). Se falhar,
           // tenta seguir mesmo assim (caso as regras estejam abertas p/ teste).
@@ -72,10 +88,11 @@
           } else { start(); }
         } catch (e) {
           console.warn('[CloudSync] init falhou — seguindo offline:', e);
-          self.enabled = false;
+          self.enabled = false; self._setStatus('erro');
         }
       }, function () {
         console.warn('[CloudSync] SDK do Firebase não carregou (offline?). App segue local.');
+        self._setStatus('erro');
       });
     },
 
@@ -86,7 +103,9 @@
       clearTimeout(this._pushTimer);
       this._pushTimer = setTimeout(function () {
         try {
-          self._ref.set({ payload: JSON.stringify(data), origin: self._clientId, updatedAt: Date.now() });
+          self._ref.set({ payload: JSON.stringify(data), origin: self._clientId, updatedAt: Date.now() })
+            .then(function () { self._setStatus('online'); })
+            .catch(function (e) { console.warn('[CloudSync] push falhou:', e); self._setStatus('erro'); });
         } catch (e) { console.warn('[CloudSync] push falhou:', e); }
       }, 600);
     }

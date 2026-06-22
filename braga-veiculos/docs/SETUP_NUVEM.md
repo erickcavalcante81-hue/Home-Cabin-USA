@@ -48,8 +48,20 @@ Tempo estimado: ~15 minutos.
 
 ## Parte 3 — Colar as chaves no app
 
-Abra o arquivo **`braga-veiculos/app/firebase-config.js`** e substitua os
-valores `COLE_...` pelos que você copiou na Parte 1:
+Há **duas formas** (escolha uma):
+
+**Forma A — Direto no app (mais fácil, sem mexer em arquivo):**
+1. Abra o app → toque em **☁️ Configurar sincronização** (na tela de login) ou
+   no **chip ☁️** no topo.
+2. **Cole o bloco `firebaseConfig`** que você copiou na Parte 1 → **Salvar e
+   conectar**. O app reinicia já sincronizando. O chip no topo mostra o status:
+   🟢 Sincronizado · 🟡 Conectando · 🔴 Sem conexão · ⚪ Local.
+   - *Obs.: isso vale por aparelho.* Para configurar a equipe toda de uma vez,
+     use a Forma B (ou me mande as chaves que eu deixo embutido no app).
+
+**Forma B — No arquivo (todos os aparelhos já vêm configurados):**
+Abra **`braga-veiculos/app/firebase-config.js`** e substitua os valores
+`COLE_...` pelos que você copiou na Parte 1:
 
 ```js
 window.FIREBASE_CONFIG = {
