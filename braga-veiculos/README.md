@@ -25,6 +25,7 @@ braga-veiculos/
 │   ├── firebase-config.js               ← Chaves do Firebase (vazio = sync desligado)
 │   └── icons/                           ← Ícones do app (192/512/apple)
 └── docs/
+    ├── MANUAL_DE_USO.md                 ← ★ Manual de uso (todos os perfis)
     ├── SETUP_NUVEM.md                   ← ★ Guia: pôr online + sincronizar
     ├── RESUMO_PROJETO_BRAGA_VEICULOS.md ← Resumo completo do projeto
     ├── CONTEXTO_PARA_NOVA_CONTA_COWORK.md
@@ -125,7 +126,8 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
 5. **Treinar a equipe** — cada pessoa com seu perfil.
 6. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
 
-Documentos de referência completos em [`docs/`](docs/) — em especial
+Documentos de referência completos em [`docs/`](docs/) — em especial o
+**[Manual de Uso](docs/MANUAL_DE_USO.md)** (para a equipe) e o
 [`RESUMO_PROJETO_BRAGA_VEICULOS.md`](docs/RESUMO_PROJETO_BRAGA_VEICULOS.md).
 
 ---
