@@ -3,8 +3,8 @@
 **Acesse em:** https://entrega-braga.netlify.app
 **Funciona em:** celular e computador (navegador). Dá para instalar como app.
 
-Este manual explica o app para **todos os perfis**: Gerente, Helena
-(Programador), Adriano (Co-Programador), Preparador e Instalador.
+Este manual explica o app para **todos os perfis**: Gerente, Programador,
+Co-Programador, Preparador, Instalação de Acessórios e Lavador / Tapete.
 
 ---
 
@@ -17,9 +17,10 @@ Este manual explica o app para **todos os perfis**: Gerente, Helena
 3. Vira um ícone como qualquer app, abre em tela cheia e funciona até **sem internet** (sincroniza quando a conexão volta).
 
 ### Entrar (escolher o perfil)
-Na tela inicial, toque no seu perfil: **Gerente**, **Helena**, **Adriano**,
-**Preparador** ou **Instalador**. Para trocar de perfil, toque no seu nome no
-canto superior direito.
+Na tela inicial, toque no seu perfil: **Gerente**, **Programador**,
+**Co-Programador**, **Preparador**, **Instalação de Acessórios** ou
+**Lavador / Tapete**. Para trocar de perfil, toque no cargo no canto
+superior direito.
 
 ### O chip de sincronização (canto superior direito)
 Mostra se os dados estão na nuvem (sincronizados entre todos os aparelhos):
@@ -46,8 +47,8 @@ Mostra se os dados estão na nuvem (sincronizados entre todos os aparelhos):
 | ⚠️ **Defeitos** | Registrar e acompanhar avarias/defeitos |
 
 *Todos os perfis enxergam todas as abas — cada um foca nas suas tarefas
-(abaixo). O botão **+** (cadastrar veículo) aparece só para Gerente, Helena
-e Adriano.*
+(abaixo). O botão **+** (cadastrar veículo) aparece só para Gerente,
+Programador e Co-Programador.*
 
 ---
 
@@ -58,10 +59,10 @@ Todo veículo percorre estas etapas (a barrinha de progresso mostra onde está):
 | # | Etapa | Quem faz | Atenção |
 |---|-------|----------|---------|
 | 0 | Localização Chassi | Equipe Pátio | 📸 Foto do chassi (e da avaria, se houver) |
-| 1 | Acessórios / Películas | Instalador (Parazinho) | Independe da data de entrega |
-| 2 | Confirmação de Data | Adriano | Aciona a Lista de Entrega |
-| 3 | Lista de Entrega | Adriano | Dispara a lavagem |
-| 4 | Lavagem e Acabamento | Lavador | Agendado por WhatsApp/e-mail |
+| 1 | Acessórios / Películas | Instalação de Acessórios | Só se houver acessório a instalar |
+| 2 | Confirmação de Data | Co-Programador | Aciona a Lista de Entrega |
+| 3 | Lista de Entrega | Co-Programador | Dispara a lavagem |
+| 4 | Lavagem e Acabamento | Lavador / Tapete | Lavagem + tapete de fábrica |
 | 5 | Qualidade + Placa | Responsável | 📸 Foto da placa instalada |
 | 6 | Entregador Técnico | Braga | 📸 Foto do chassi + da placa |
 | 7 | Concluído | — | Registrado no app |
@@ -80,7 +81,7 @@ Seu foco é **acompanhar**, não operar.
 - Aba **Defeitos** para ver pendências de qualidade.
 - Você também pode cadastrar veículos (botão **+**), se precisar.
 
-### 📋 Helena — Programador (coração da operação)
+### 📋 Programador (coração da operação)
 Você organiza o pipeline do início ao fim.
 - **Cadastrar veículos:** botão **+** (um a um) **ou** aba **Entrada** para
   importar uma **planilha inteira** de uma vez (ver seção 5).
@@ -90,10 +91,11 @@ Você organiza o pipeline do início ao fim.
 - **Avançar as etapas:** conforme a equipe conclui cada fase, abra o veículo e
   toque em **"✓ Concluir: <etapa> → <próxima>"** (ver seção 6).
 
-### 👨‍💼 Adriano — Co-Programador
-Você recebe os pedidos (geralmente da Helena, por WhatsApp) e alimenta o app.
-- Aba **Entrada**: quando logado como **Adriano**, aparece o atalho verde
-  **"Recebi mensagem da Helena"** — toque, cole o texto e confirme.
+### 👨‍💼 Co-Programador
+Você recebe os pedidos (geralmente do Programador, por WhatsApp) e alimenta o app.
+- Aba **Entrada**: quando logado como **Co-Programador**, aparece o atalho
+  verde **"Recebi mensagem do Programador"** — toque, escolha o remetente
+  autorizado, cole o texto e confirme.
 - Você também importa **planilhas** (PDF) e cadastra veículos (botão **+**).
 - É o responsável pelas etapas **2 (Confirmação de Data)** e **3 (Lista de
   Entrega)** — confirme a data com o cliente e avance essas etapas.
@@ -108,19 +110,29 @@ Seu trabalho aparece na aba **Checklist**.
    placa/avaria antes de concluir.
 5. Achou um problema no carro? Registre em **Defeitos** (ver seção 9).
 
-### 🛠️ Instalador de Acessórios
-Seu foco é confirmar a instalação (etapa 1).
+### 🛠️ Instalação de Acessórios
+Para veículos **com** acessórios/películas (etapa 1).
 1. Aba **Veículos** → abra o veículo → aba **Acessórios**.
 2. Toque na **bolinha** ao lado de cada acessório quando instalar — vira ✅ e
    grava a data automaticamente.
 3. Faltou um acessório na lista? Toque em **"+ Adicionar"** e digite o nome.
 4. Com tudo instalado e conferido, o veículo pode avançar da etapa 1.
 
+### ✨ Lavador / Tapete
+Para a **lavagem e acabamento** (etapa 4) — inclui os veículos que **não têm
+acessório**: são apenas lavados e entregues com o **tapete de fábrica**.
+1. Aba **Checklist** → escolha o veículo (etapa **Lavagem e Acabamento**).
+2. **Toque em cada item** da lavagem conforme faz, incluindo
+   **"Tapete (item de fábrica) instalado no veículo"**.
+3. Concluído o checklist, o veículo segue para **Qualidade + Placa**.
+> Veículo sem acessório passa direto pela etapa 1 (nada a instalar) e o foco é
+> a sua etapa: lavar, colocar o tapete e encaminhar para a entrega.
+
 ---
 
 ## 5. Importar uma PLANILHA DE ENTREGA (vários veículos de uma vez)
 
-Para Helena/Adriano/Gerente. Cadastra a planilha do dia inteira em segundos —
+Para Programador/Co-Programador/Gerente. Cadastra a planilha do dia inteira em segundos —
 **de forma automática, sem precisar selecionar ou confirmar veículo por veículo**.
 
 1. Aba **Entrada** → **"+ Nova Entrada"**.
@@ -156,7 +168,7 @@ Para Helena/Adriano/Gerente. Cadastra a planilha do dia inteira em segundos —
 
 ## 7. Cadastrar UM veículo manualmente
 
-Para Helena/Adriano/Gerente.
+Para Programador/Co-Programador/Gerente.
 1. Toque no botão **+** (canto inferior direito).
 2. Preencha: modelo, cor, placa/chassi, nº fatura, cliente, celular, data da
    fatura, consultor e observações.

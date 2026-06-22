@@ -448,21 +448,25 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div class="profile-icon">📊</div>
       <div><div class="profile-name">Gerente / Dashboard</div><div class="profile-desc">Visão geral, métricas e alertas</div></div>
     </button>
-    <button class="profile-option" onclick="login('programador', 'Helena')">
+    <button class="profile-option" onclick="login('programador', 'Programador')">
       <div class="profile-icon">📋</div>
-      <div><div class="profile-name">Helena — Programador</div><div class="profile-desc">Cadastro, pipeline e agendamentos</div></div>
+      <div><div class="profile-name">Programador</div><div class="profile-desc">Cadastro, pipeline e agendamentos</div></div>
     </button>
-    <button class="profile-option" onclick="login('programador', 'Adriano')">
+    <button class="profile-option" onclick="login('programador', 'Co-Programador')">
       <div class="profile-icon">👨‍💼</div>
-      <div><div class="profile-name">Adriano — Co-Programador</div><div class="profile-desc">Recebe pedidos, cadastra veículos e atualiza lista</div></div>
+      <div><div class="profile-name">Co-Programador</div><div class="profile-desc">Recebe pedidos, cadastra veículos e atualiza lista</div></div>
     </button>
     <button class="profile-option" onclick="login('preparador', 'Preparador')">
       <div class="profile-icon">🔧</div>
       <div><div class="profile-name">Preparador de Veículos</div><div class="profile-desc">Checklists e registro de defeitos</div></div>
     </button>
-    <button class="profile-option" onclick="login('instalador', 'Instalador')">
+    <button class="profile-option" onclick="login('instalador', 'Instalação de Acessórios')">
       <div class="profile-icon">🛠️</div>
-      <div><div class="profile-name">Instalador de Acessórios</div><div class="profile-desc">Confirmação de instalação</div></div>
+      <div><div class="profile-name">Instalação de Acessórios</div><div class="profile-desc">Instala e confirma acessórios e películas (etapa 1)</div></div>
+    </button>
+    <button class="profile-option" onclick="login('lavador', 'Lavador / Tapete')">
+      <div class="profile-icon">✨</div>
+      <div><div class="profile-name">Lavador / Tapete</div><div class="profile-desc">Lavagem, acabamento e tapete de fábrica (etapa 4) — inclui veículos sem acessório</div></div>
     </button>
     <div style="margin-top:18px;text-align:center;border-top:1px solid var(--border);padding-top:14px">
       <button onclick="openCloudModal()" style="background:none;border:1px solid var(--border);color:var(--text-light);border-radius:20px;padding:8px 16px;font-size:13px;cursor:pointer">☁️ Configurar sincronização (nuvem)</button>
@@ -544,7 +548,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     <div id="entradaQuickActions" style="display:none;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--text-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Ação Rápida</div>
       <button class="btn btn-success btn-block" onclick="openIntakePreFilled()" style="font-size:15px;padding:16px">
-        💬 Recebi mensagem da Helena — Cadastrar Veículo
+        💬 Recebi mensagem do Programador — Cadastrar Veículo
       </button>
     </div>
     <div class="section-header">
@@ -973,10 +977,10 @@ const USE_LOCAL = _storageAvailable();
 // ===== DATA STORE =====
 const STAGES = [
   { name: 'Localização Chassi',      icon: '🔍', days: 0, color: '#f59e0b',  resp: 'Equipe Pátio' },
-  { name: 'Acessórios / Películas',  icon: '🛠️', days: 1, color: '#8b5cf6',  resp: 'Parazinho' },
-  { name: 'Confirmação de Data',     icon: '📅', days: 1, color: '#06b6d4',  resp: 'Adriano' },
-  { name: 'Lista de Entrega',        icon: '📋', days: 0, color: '#f97316',  resp: 'Adriano' },
-  { name: 'Lavagem e Acabamento',    icon: '✨', days: 1, color: '#0891b2',  resp: 'Lavador' },
+  { name: 'Acessórios / Películas',  icon: '🛠️', days: 1, color: '#8b5cf6',  resp: 'Instalação de Acessórios' },
+  { name: 'Confirmação de Data',     icon: '📅', days: 1, color: '#06b6d4',  resp: 'Co-Programador' },
+  { name: 'Lista de Entrega',        icon: '📋', days: 0, color: '#f97316',  resp: 'Co-Programador' },
+  { name: 'Lavagem e Acabamento',    icon: '✨', days: 1, color: '#0891b2',  resp: 'Lavador / Tapete' },
   { name: 'Qualidade + Placa',       icon: '🎯', days: 0, color: '#e8394f',  resp: 'Responsável' },
   { name: 'Entregador Técnico',      icon: '🚗', days: 0, color: '#16a34a',  resp: 'Braga' },
   { name: 'Concluído',               icon: '✅', days: 0, color: '#16a34a',  resp: '—' }
@@ -1037,6 +1041,7 @@ const CHECKLIST_TEMPLATES = [
       'Borrachas e plásticos tratados',
       'Acabamento final inspecionado pelo lavador',
       'Veículo seco e sem manchas',
+      'Tapete (item de fábrica) instalado no veículo',
       'Veículo entregue ao Responsável para inspeção de qualidade'
     ]
   },
@@ -1101,7 +1106,7 @@ function login(profile, userName) {
   currentUserName = userName || '';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display = 'block';
-  const roleNames = { gerente:'Gerente', programador:'Programador', preparador:'Preparador', instalador:'Instalador' };
+  const roleNames = { gerente:'Gerente', programador:'Programador', preparador:'Preparador', instalador:'Instalação de Acessórios', lavador:'Lavador / Tapete' };
   const displayName = userName || roleNames[profile];
   document.getElementById('profileBadge').textContent = displayName;
   // Show/hide FAB and tabs based on profile
@@ -1140,7 +1145,7 @@ function showPage(page, btn) {
   if(page === 'Entrada') {
     renderIntakeList();
     const qa = document.getElementById('entradaQuickActions');
-    if(qa) qa.style.display = currentUserName === 'Adriano' ? 'block' : 'none';
+    if(qa) qa.style.display = currentUserName === 'Co-Programador' ? 'block' : 'none';
   }
   if(page === 'Defeitos') renderDefects();
 }
@@ -1693,10 +1698,9 @@ let _bulkDate = null;
 
 function openIntakePreFilled() {
   openIntakeModal();
-  // Auto-select WhatsApp + Adriano after modal opens
+  // Pré-seleciona WhatsApp; o remetente autorizado é escolhido pelo usuário.
   setTimeout(() => {
     selectSource('whatsapp');
-    selectSender('Adriano');
     document.getElementById('intakeText').focus();
   }, 100);
 }

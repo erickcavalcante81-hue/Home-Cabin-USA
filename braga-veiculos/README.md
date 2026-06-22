@@ -57,16 +57,16 @@ sincronizados entre aparelhos, siga **[`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.m
 | # | Etapa                  | Responsável   | Observação                         |
 |---|------------------------|---------------|------------------------------------|
 | 0 | Localização Chassi     | Equipe Pátio  | Foto do chassi obrigatória         |
-| 1 | Acessórios / Películas | Parazinho     | Independente da data de entrega    |
-| 2 | Confirmação de Data    | Adriano       | Aciona a Lista de Entrega          |
-| 3 | Lista de Entrega       | Adriano       | Gatilho que ativa a lavagem        |
-| 4 | Lavagem e Acabamento   | Lavador       | Agendado via WhatsApp/e-mail       |
+| 1 | Acessórios / Películas | Inst. Acessórios | Só se houver acessório a instalar |
+| 2 | Confirmação de Data    | Co-Programador | Aciona a Lista de Entrega          |
+| 3 | Lista de Entrega       | Co-Programador | Gatilho que ativa a lavagem        |
+| 4 | Lavagem e Acabamento   | Lavador/Tapete | Lavagem + tapete de fábrica        |
 | 5 | Qualidade + Placa      | Responsável   | Foto da placa obrigatória          |
 | 6 | Entregador Técnico     | Braga         | Fotos: chassi + placa instalada    |
 | 7 | Concluído              | —             | Registrado no app                  |
 
-**Perfis:** Gerente (dashboard) · Helena (Programador) · Adriano
-(Co-Programador) · Preparador · Instalador.
+**Perfis de acesso:** Gerente (dashboard) · Programador · Co-Programador ·
+Preparador · Instalação de Acessórios · Lavador / Tapete.
 
 **Remetentes WhatsApp autorizados:** Adriana · Adriano · Junior Leão ·
 Adriano Junior.
