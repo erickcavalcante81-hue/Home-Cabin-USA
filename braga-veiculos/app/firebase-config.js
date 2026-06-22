@@ -1,21 +1,19 @@
 /* ============================================================
-   CONFIGURAÇÃO DO FIREBASE  —  cole aqui as chaves do seu projeto
+   CONFIGURAÇÃO DO FIREBASE — projeto "entrega-braga"
    ============================================================
-   Onde pegar: console.firebase.google.com  →  seu projeto  →
-   ⚙ Configurações do projeto  →  "Seus apps"  →  app Web  →  SDK.
-
-   Enquanto os valores começarem com "COLE_", a sincronização em nuvem
-   fica DESLIGADA e o app funciona normalmente, offline, em cada aparelho.
-
    Estas chaves do Firebase Web NÃO são secretas (são enviadas ao
    navegador por design). A segurança vem das Regras do Firestore +
    login anônimo — veja docs/SETUP_NUVEM.md.
+
+   Para trocar de projeto, basta substituir os valores abaixo (ou usar
+   a tela "☁️ Configurar sincronização" dentro do app).
    ============================================================ */
 window.FIREBASE_CONFIG = {
-  apiKey: "COLE_SUA_API_KEY",
-  authDomain: "COLE_SEU_PROJETO.firebaseapp.com",
-  projectId: "COLE_SEU_PROJECT_ID",
-  storageBucket: "COLE_SEU_PROJETO.appspot.com",
-  messagingSenderId: "COLE_SEU_SENDER_ID",
-  appId: "COLE_SEU_APP_ID"
+  apiKey: "AIzaSyCXwTyZp95UhCCsszUVBOzCZ32YeyEUwL8",
+  authDomain: "entrega-braga.firebaseapp.com",
+  projectId: "entrega-braga",
+  storageBucket: "entrega-braga.firebasestorage.app",
+  messagingSenderId: "520793679504",
+  appId: "1:520793679504:web:0facd8f1f0861a29cb9a15",
+  measurementId: "G-W741TLBQH2"
 };
