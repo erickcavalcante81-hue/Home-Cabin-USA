@@ -411,6 +411,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 }
 .intake-card.processed { border-left-color: var(--green); }
 .intake-card.rejected { border-left-color: var(--red); opacity: 0.6; }
+.bulk-row { display:flex; gap:10px; align-items:flex-start; padding:10px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:var(--card); cursor:pointer; }
+.bulk-row input { margin-top:3px; width:18px; height:18px; flex:none; accent-color: var(--primary); }
+.bulk-row.bulk-warn { border-color: var(--yellow); background: var(--yellow-bg); }
+.bulk-main { flex:1; min-width:0; }
+.bulk-title { font-weight:700; font-size:14px; }
+.bulk-sub { font-size:12px; color: var(--text-light); margin-top:2px; word-break:break-word; }
 .parsed-field { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
 .parsed-field:last-child { border-bottom: none; }
 .parsed-key { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; min-width: 90px; padding-top: 2px; }
@@ -760,6 +766,9 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
         <button class="source-btn" id="src_image" onclick="selectSource('image')">
           <span class="src-icon">🖼️</span><span>Imagem / Print</span>
         </button>
+        <button class="source-btn" id="src_planilha" onclick="selectSource('planilha')" style="grid-column:1/-1">
+          <span class="src-icon">📋</span><span>Planilha de Entrega (lote — vários veículos)</span>
+        </button>
       </div>
 
       <!-- WhatsApp authorized sender -->
@@ -879,6 +888,20 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn btn-secondary" onclick="intakeBack()">‹ Voltar</button>
         <button class="btn btn-primary btn-block" onclick="confirmIntake()">✓ Cadastrar Veículo</button>
+      </div>
+    </div>
+
+    <!-- Step 3: importação em lote (planilha) -->
+    <div id="intakeStep3" style="display:none">
+      <div style="background:var(--green-bg);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-weight:700;color:var(--green);font-size:14px">📋 Planilha processada</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">Revise os veículos abaixo. Desmarque os que não quer cadastrar.</div>
+      </div>
+      <div id="bulkSummary" style="font-size:13px;margin-bottom:10px"></div>
+      <div id="bulkList" style="max-height:46vh;overflow:auto;margin-bottom:12px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="intakeBack()">‹ Voltar</button>
+        <button class="btn btn-primary btn-block" id="bulkConfirmBtn" onclick="confirmPlanilhaIntake()">✓ Cadastrar veículos</button>
       </div>
     </div>
   </div>
@@ -1237,15 +1260,17 @@ function renderDetailInfo(v) {
   el.innerHTML = `
     <div class="card">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div><div class="form-label">Modelo</div><div style="font-weight:700">${v.model}</div></div>
+        <div><div class="form-label">Modelo</div><div style="font-weight:700">${v.model}${v.versao?` <span style="font-weight:400;color:var(--text-light)">(${v.versao})</span>`:''}</div></div>
         <div><div class="form-label">Cor</div><div>${v.color||'—'}</div></div>
-        <div><div class="form-label">Placa / Chassi</div><div style="font-weight:700">${v.plate||'—'}</div></div>
-        <div><div class="form-label">Nº Fatura</div><div>${v.invoice||'—'}</div></div>
+        <div><div class="form-label">Chassi</div><div style="font-weight:700;font-family:ui-monospace,monospace;font-size:12.5px">${v.chassi||'—'}</div></div>
+        <div><div class="form-label">Placa</div><div>${v.plate||'—'}</div></div>
         <div><div class="form-label">Cliente</div><div style="font-weight:700">${v.client}</div></div>
         <div><div class="form-label">Celular</div><div>${v.phone||'—'}</div></div>
         <div><div class="form-label">Consultor</div><div>${v.seller||'—'}</div></div>
+        <div><div class="form-label">Nº Fatura</div><div>${v.invoice||'—'}</div></div>
         <div><div class="form-label">Data Fatura</div><div>${formatDate(v.invoiceDate)}</div></div>
-        ${v.deliveryDate?`<div><div class="form-label">Data Entrega</div><div style="font-weight:700;color:var(--green)">${formatDate(v.deliveryDate)}</div></div>`:''}
+        ${v.entregador?`<div><div class="form-label">Entregador</div><div>🚗 ${v.entregador}</div></div>`:''}
+        ${(v.deliveryDate||v.horarioEntrega)?`<div><div class="form-label">Entrega</div><div style="font-weight:700;color:var(--green)">${v.deliveryDate?formatDate(v.deliveryDate):''}${v.horarioEntrega?' · '+v.horarioEntrega:''}</div></div>`:''}
       </div>
       ${v.obs?`<div><div class="form-label">Observações</div><div style="font-size:13px;color:#374151">${v.obs}</div></div>`:''}
     </div>
@@ -1611,6 +1636,8 @@ const AUTHORIZED_SENDERS = ['Adriana', 'Adriano', 'Junior Leão', 'Adriano Junio
 let intakeSource = null;
 let intakeSender = null;
 let parsedAccs = [];
+let parsedPlanilha = [];
+let _bulkDate = null;
 
 function openIntakePreFilled() {
   openIntakeModal();
@@ -1623,9 +1650,10 @@ function openIntakePreFilled() {
 }
 
 function openIntakeModal() {
-  intakeSource = null; intakeSender = null; parsedAccs = [];
+  intakeSource = null; intakeSender = null; parsedAccs = []; parsedPlanilha = []; _bulkDate = null;
   document.getElementById('intakeStep1').style.display = 'block';
   document.getElementById('intakeStep2').style.display = 'none';
+  document.getElementById('intakeStep3').style.display = 'none';
   document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('authBlock').style.display = 'none';
@@ -1644,8 +1672,16 @@ function selectSource(src) {
   document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('src_'+src).classList.add('selected');
   document.getElementById('authBlock').style.display = src === 'whatsapp' ? 'block' : 'none';
-  document.getElementById('textBlock').style.display = ['email','whatsapp'].includes(src) ? 'block' : 'none';
+  document.getElementById('textBlock').style.display = ['email','whatsapp','planilha'].includes(src) ? 'block' : 'none';
   document.getElementById('fileBlock').style.display = ['pdf','image'].includes(src) ? 'block' : 'none';
+  const ta = document.getElementById('intakeText');
+  if(src === 'planilha') {
+    ta.placeholder = 'Cole aqui o texto da PLANILHA DE ENTREGA (ou da planilha de preparação).\nO app extrai todos os veículos automaticamente pelo chassi.';
+    document.getElementById('btnProcess').textContent = '🔍 Processar planilha (lote)';
+  } else {
+    ta.placeholder = 'Cole a mensagem do WhatsApp ou e-mail aqui...';
+    document.getElementById('btnProcess').textContent = '🔍 Processar e Extrair Dados';
+  }
   if(src !== 'whatsapp') { intakeSender = null; document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected')); }
   checkIntakeReady();
 }
@@ -1771,7 +1807,154 @@ function parseOrderText(text) {
   return result;
 }
 
+// ===== PARSER DE PLANILHA DE ENTREGA / PREPARAÇÃO (lote) =====
+// Extrai N veículos de uma planilha colada. Âncora universal: o CHASSI (VIN 17).
+function _esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function _norm(s){ return s.replace(/ /g,' ').replace(/\s+/g,' ').trim(); }
+function _clean(s){ return _norm(s).replace(/^[,;"'\s]+|[,;"'\s]+$/g,'').trim(); }
+const PLANILHA_MODELS = ['S10 HIGH COUNTRY','S10','ONIX PLUS','NV ONIX','ONIX','NV TRACKER','TRACKER','MONTANA','SPARK EUV ACTIV','SPARK','SONIC','EQUINOX','TRAILBLAZER','BLAZER','SPIN','COBALT','CRUZE','CAMARO'];
+const PLANILHA_COLORS = ['BRANCO SUMMIT','BRANCO CUPUACU','BRANCO','PRATA SHARK','PRATA','VERMELHO SCARLET','VERMELHO','PRETO OURO NEGRO','PRETO NEGRO OURO','PRETO','AZUL BOREAL','AZUL','CINZA TOPAZIO','CINZA MOSS','CINZA URBANO','CINZA REDENTOR','CINZA GRAFITE','CINZA','VERDE','LARANJA','BRONZE','MARROM','BEGE','DOURADO'];
+const ENTREGADORES = ['THAIS','THAÍS','GABRIEL','LUCAS','ROBSON'];
+const VERSION_CODES = ['PDB','PDJ','R7U','R7R','R7J','R8E','R8A','RFE','RGE','PEB','PR2','UE1','NB'];
+const ACC_DICT = [
+  [/insul?f[il]+m|insufl|insulfi?im/i,'Insulfilm'],[/tap+et+e?s?/i,'Tapete'],
+  [/protetor.*c[áa]rter|c[áa]rter/i,'Protetor de cárter'],[/prot.*ca[çc]amba|ca[çc]amba/i,'Protetor de caçamba'],
+  [/piso vernilon|vernilon/i,'Piso Vernilon'],[/kit braga/i,'Kit Braga'],
+  [/c[âa]mera de r[ée]|camera de re/i,'Câmera de ré'],[/sensor de estacionamento|sensor de r[ée]|sensor de re/i,'Sensor de estacionamento'],
+  [/friso/i,'Friso'],[/soleira/i,'Soleira'],[/estribo/i,'Estribo lateral'],[/letreiro/i,'Letreiro cromado'],
+  [/\d+\s*litros? de combust/i,'Combustível'],[/filtro (de|do) ar|filtro de ar/i,'Filtro de ar'],
+  [/banco de couro/i,'Banco de couro'],[/ponteira/i,'Ponteira de escapamento'],[/camisa/i,'Camisa Chevrolet'],
+  [/capa de silicone/i,'Capa de silicone'],[/para.?barro/i,'Para-barro'],[/emblema|emplema/i,'Emblema'],
+  [/amortecedor|amprtecedor/i,'Amortecedor'],[/copo vintage/i,'Copo Vintage'],
+  [/luzes? de boas|luz interna led|kit luz/i,'Iluminação'],[/banco/i,'Banco']
+];
+function normalizeAcc(s){
+  var t=_norm(s).replace(/^[,;.\s"']+|[,;.\s"']+$/g,'');
+  if(!t) return '';
+  for(var i=0;i<ACC_DICT.length;i++){ if(ACC_DICT[i][0].test(t)) return ACC_DICT[i][1]; }
+  return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase();
+}
+function _vinList(text){ var re=/\b[0-9][0-9A-HJ-NPR-Z]{16}\b/g,m,out=[]; while((m=re.exec(text))){ out.push({chassi:m[0],idx:m.index,end:re.lastIndex}); } return out; }
+const MODEL_RE = new RegExp('\\b('+PLANILHA_MODELS.slice().sort((a,b)=>b.length-a.length).map(_esc).join('|')+')\\b','i');
+const COLOR_RE = new RegExp('^('+PLANILHA_COLORS.slice().sort((a,b)=>b.length-a.length).map(_esc).join('|')+')','i');
+const ACC_START_RE = /insul?f|insufl|tap+et|protetor|piso vernilon|vernilon|kit braga|c[âa]mera|camera|sensor|friso|soleira|estribo|letreiro|\d+\s*litros? de combust|filtro (de|do) ar|banco de couro|ponteira|camisa|capa de silicone|para.?barro|emblema|emplema|amortecedor|amprtecedor|copo vintage|luz/i;
+const ENTREG_RE = new RegExp('\\b('+ENTREGADORES.map(_esc).join('|')+')\\b','ig');
+function _isoFromMDY(s){ var p=s.split('/'); if(p.length<3) return null; var mo=+p[0],da=+p[1],yr=+p[2]; if(mo>12){var t=mo;mo=da;da=t;} return yr+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0'); }
+function _isoFromHeader(s,year){ var p=s.split('/'),da=+p[0],mo=+p[1]; if(da<=12&&mo>12){var t=da;da=mo;mo=t;} return year+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0'); }
+function _parseRecord(chunk,mark){
+  var vins=_vinList(chunk);
+  var rec={ horario:null, dataFaturamento:null, cliente:'', modelo:'', versao:'', chassi:'', cor:'', vendedor:'', entregador:'', acessorios:[], raw:_norm(chunk) };
+  if(mark.isTime) rec.horario=mark.val.slice(0,5); else rec.dataFaturamento=_isoFromMDY(mark.val);
+  if(!vins.length) return rec;
+  var v=vins[0]; rec.chassi=v.chassi.toUpperCase();
+  var head=chunk.slice(mark.val.length,v.idx), tail=chunk.slice(v.end);
+  var mm=head.match(MODEL_RE);
+  if(mm){ rec.cliente=_clean(head.slice(0,mm.index)); var mod=_clean(head.slice(mm.index)); var codes=[];
+    for(var i=0;i<VERSION_CODES.length;i++){ if(new RegExp('\\b'+_esc(VERSION_CODES[i])+'\\b').test(mod)) codes.push(VERSION_CODES[i]); }
+    rec.versao=codes.join(' '); rec.modelo=mod;
+  } else { rec.cliente=_clean(head); }
+  var t=_norm(tail), last=-1, lastName=''; ENTREG_RE.lastIndex=0; var em;
+  while((em=ENTREG_RE.exec(t))){ if(em.index>last){ last=em.index; lastName=em[1]; } }
+  if(last>=0){ rec.entregador=lastName.charAt(0).toUpperCase()+lastName.slice(1).toLowerCase(); t=_norm(t.slice(0,last)+' '+t.slice(last+lastName.length)); }
+  t=t.replace(/^[\s,]+/,''); var cm=t.match(COLOR_RE);
+  if(cm){ rec.cor=cm[1].split(' ').map(w=>w.charAt(0)+w.slice(1).toLowerCase()).join(' '); t=_norm(t.slice(cm[1].length)); }
+  t=t.replace(/^[\s,]+/,''); var am=t.match(ACC_START_RE);
+  if(am){ rec.vendedor=_clean(t.slice(0,am.index)); var accText=t.slice(am.index), parts=accText.split(/[,;]+/), seen={};
+    for(var j=0;j<parts.length;j++){ var a=normalizeAcc(parts[j]); if(a&&!seen[a]){ seen[a]=1; rec.acessorios.push(a); } }
+  } else { rec.vendedor=_clean(t); }
+  return rec;
+}
+function parsePlanilha(rawText){
+  var text=(rawText||'').replace(/ /g,' '); var year=(new Date()).getFullYear();
+  var planDate=null, dayLabel=''; var hdr=text.match(/\b(\d{1,2}\/\d{1,2})\b(?!\/)\s*([A-Za-zÀ-Ú]{3,})?/);
+  if(hdr){ planDate=_isoFromHeader(hdr[1],year); if(hdr[2]) dayLabel=hdr[2].toUpperCase(); }
+  var flat=_norm(text.replace(/\n/g,' ')); var delimRe=/(\d{1,2}:\d{2}:\d{2})|(\b\d{1,2}\/\d{1,2}\/\d{4}\b)/g,d,marks=[];
+  while((d=delimRe.exec(flat))){ marks.push({val:d[0],idx:d.index,isTime:!!d[1]}); }
+  var rows=[],skipped=0;
+  for(var i=0;i<marks.length;i++){ var start=marks[i].idx,end=(i+1<marks.length)?marks[i+1].idx:flat.length;
+    var rec=_parseRecord(flat.slice(start,end),marks[i]);
+    if(rec.chassi){ if(!rec.dataFaturamento&&planDate) rec.deliveryDate=planDate; rows.push(rec); } else skipped++; }
+  return { date:planDate, dayLabel:dayLabel, rows:rows, skipped:skipped };
+}
+function applyPlanilhaRows(rows,data,ts,user){
+  data.vehicles=data.vehicles||[]; data.intakes=data.intakes||[];
+  var byChassi={}; data.vehicles.forEach(function(v){ if(v.chassi) byChassi[v.chassi]=v; });
+  var novos=0,atualizados=0;
+  rows.forEach(function(r){
+    if(!r.chassi) return;
+    var accObjs=(r.acessorios||[]).map(function(a){return {name:a,installed:false,installedAt:null};});
+    var v=byChassi[r.chassi];
+    if(v){
+      if(r.cor&&!v.color) v.color=r.cor; if(r.vendedor&&!v.seller) v.seller=r.vendedor;
+      if(r.entregador) v.entregador=r.entregador; if(r.horario) v.horarioEntrega=r.horario;
+      if(r.deliveryDate) v.deliveryDate=r.deliveryDate; if(r.dataFaturamento&&!v.invoiceDate) v.invoiceDate=r.dataFaturamento;
+      if(r.versao&&!v.versao) v.versao=r.versao;
+      v.accessories=v.accessories||[]; var have={}; v.accessories.forEach(function(a){ have[(a.name||'').toLowerCase()]=1; });
+      accObjs.forEach(function(a){ if(!have[a.name.toLowerCase()]) v.accessories.push(a); });
+      v.history=v.history||[]; v.history.push({ts:ts,action:'Atualizado via Planilha',user:user}); atualizados++;
+    } else {
+      v={ id:data.nextId++, chassi:r.chassi, model:r.modelo||'', versao:r.versao||'', client:r.cliente||'',
+          color:r.cor||'', plate:'', invoice:'', phone:'', invoiceDate:r.dataFaturamento||ts.split('T')[0],
+          seller:r.vendedor||'', entregador:r.entregador||'', horarioEntrega:r.horario||'', deliveryDate:r.deliveryDate||null,
+          obs:'', stage:0, checklists:{}, accessories:accObjs, intake:{source:'planilha',ts:ts},
+          history:[{ts:ts,action:'Cadastrado via Planilha',user:user}] };
+      data.vehicles.push(v); byChassi[r.chassi]=v; novos++;
+    }
+    data.intakes.push({ id:(+new Date())+'-'+r.chassi, vehicleId:v.id, source:'planilha', sender:null, vehicleName:(r.modelo||'')+' — '+(r.cliente||''), ts:ts, status:'processed' });
+  });
+  return { novos:novos, atualizados:atualizados };
+}
+
+// ----- fluxo de UI da importação em lote -----
+function processPlanilhaIntake(){
+  const raw = document.getElementById('intakeText').value;
+  if(!raw.trim()){ toast('Cole o texto da planilha primeiro'); return; }
+  const res = parsePlanilha(raw);
+  _bulkDate = res.date;
+  parsedPlanilha = res.rows.map((r,i)=>{ r._idx=i; r._include = !!(r.chassi && r.modelo); return r; });
+  if(parsedPlanilha.length===0){ toast('Nenhum veículo reconhecido. Cole a planilha completa (com os chassis).'); return; }
+  renderBulkList();
+  document.getElementById('intakeStep1').style.display='none';
+  document.getElementById('intakeStep2').style.display='none';
+  document.getElementById('intakeStep3').style.display='block';
+}
+function renderBulkList(){
+  const data = getStorage(); const byChassi = {}; (data.vehicles||[]).forEach(v=>{ if(v.chassi) byChassi[v.chassi]=v; });
+  document.getElementById('bulkList').innerHTML = parsedPlanilha.map(r=>{
+    const exists = r.chassi && byChassi[r.chassi];
+    const warn = !r.chassi ? 'sem chassi' : (!r.modelo ? 'sem modelo' : '');
+    return `<label class="bulk-row${warn?' bulk-warn':''}">
+      <input type="checkbox" ${r._include?'checked':''} onchange="toggleBulkRow(${r._idx},this.checked)">
+      <div class="bulk-main">
+        <div class="bulk-title">${r.cliente||'(cliente?)'} ${exists?'<span class="badge badge-blue">já existe</span>':''}</div>
+        <div class="bulk-sub">${r.modelo||'(modelo?)'} · ${r.cor||'—'} · ${r.chassi||'CHASSI?'}${warn?' · ⚠️ '+warn:''}</div>
+        <div class="bulk-sub">${r.horario?('🕒 '+r.horario+' · '):''}${r.entregador?('🚗 '+r.entregador+' · '):''}${r.acessorios.length} acessório(s)${r.vendedor?(' · '+r.vendedor):''}</div>
+      </div>
+    </label>`;
+  }).join('');
+  renderBulkSummary();
+}
+function renderBulkSummary(){
+  const data = getStorage(); const byChassi = {}; (data.vehicles||[]).forEach(v=>{ if(v.chassi) byChassi[v.chassi]=v; });
+  let novos=0, atualiza=0, sel=0;
+  parsedPlanilha.forEach(r=>{ if(r._include && r.chassi){ sel++; (byChassi[r.chassi]?atualiza++:novos++); } });
+  const dt = _bulkDate ? (' · entrega '+_bulkDate.split('-').reverse().join('/')) : '';
+  document.getElementById('bulkSummary').innerHTML =
+    `<b>${parsedPlanilha.length}</b> linha(s)${dt} — selecionados: <b>${sel}</b> (<span style="color:var(--green)">${novos} novo(s)</span>, <span style="color:var(--blue)">${atualiza} atualização(ões)</span>)`;
+  document.getElementById('bulkConfirmBtn').textContent = `✓ Cadastrar ${sel} veículo(s)`;
+}
+function toggleBulkRow(idx,val){ const r=parsedPlanilha.find(x=>x._idx===idx); if(r) r._include=val; renderBulkSummary(); }
+function confirmPlanilhaIntake(){
+  const sel = parsedPlanilha.filter(r=>r._include && r.chassi);
+  if(sel.length===0){ toast('Selecione ao menos um veículo com chassi'); return; }
+  const data = getStorage();
+  const res = applyPlanilhaRows(sel, data, new Date().toISOString(), currentUserName || currentProfile);
+  setStorage(data); closeModal('intakeModal'); renderAll();
+  toast(`✅ ${res.novos} novo(s) + ${res.atualizados} atualizado(s)`);
+}
+
 function processIntake() {
+  if(intakeSource === 'planilha') return processPlanilhaIntake();
   if(intakeSource === 'whatsapp' && !intakeSender) {
     document.getElementById('unauthorizedWarn').style.display = 'block'; return;
   }
@@ -1820,6 +2003,7 @@ function processIntake() {
 function intakeBack() {
   document.getElementById('intakeStep1').style.display = 'block';
   document.getElementById('intakeStep2').style.display = 'none';
+  document.getElementById('intakeStep3').style.display = 'none';
 }
 
 function openAddAccModal() {
@@ -1858,15 +2042,20 @@ function confirmIntake() {
   if(!model) { toast('Selecione o modelo'); return; }
   if(!client) { toast('Informe o nome do cliente'); return; }
   const data = getStorage();
+  const plateOrChassi = document.getElementById('p_plate').value.trim().toUpperCase().replace(/\s/g,'');
+  const isVin = /^[0-9][0-9A-HJ-NPR-Z]{16}$/.test(plateOrChassi);
   const v = {
     id: data.nextId++,
     model, client,
+    chassi: isVin ? plateOrChassi : '',
     color: document.getElementById('p_color').value.trim(),
-    plate: document.getElementById('p_plate').value.trim().toUpperCase(),
+    plate: isVin ? '' : plateOrChassi,
     invoice: document.getElementById('p_invoice').value.trim(),
     phone: document.getElementById('p_phone').value.trim(),
     invoiceDate: document.getElementById('p_date').value || new Date().toISOString().split('T')[0],
     seller: document.getElementById('p_seller').value.trim(),
+    entregador: '',
+    horarioEntrega: '',
     obs: document.getElementById('p_obs').value.trim(),
     stage: 0,
     checklists: {},

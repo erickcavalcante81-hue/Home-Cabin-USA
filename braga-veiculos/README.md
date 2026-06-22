@@ -78,8 +78,18 @@ O app trabalha sobre o `localStorage` do navegador, na chave **`braga_data`**:
 { vehicles: [], defects: [], intakes: [], nextId: 1 }
 ```
 
-Toda a persistência passa por duas funções isoladas — `getStorage()` e
-`setStorage()` (em `app/index.html`).
+Cada veículo é identificado pelo **`chassi`** (chave de deduplicação) e tem
+`model/versao/client/color/seller/accessories[]/stage` + os campos
+operacionais `entregador` e `horarioEntrega`. Toda a persistência passa por
+duas funções isoladas — `getStorage()` e `setStorage()` (em `app/index.html`).
+
+**Importação em lote (Entrada → "Planilha de Entrega"):** cola-se o texto de
+uma PLANILHA DE ENTREGA diária (ou de preparação) e o app extrai todos os
+veículos automaticamente — âncora no chassi, normaliza cor/acessórios (corrige
+typos) e detecta horário/entregador. Mostra uma prévia para revisão e
+**cadastra/atualiza por chassi** (não duplica). Lógica em `parsePlanilha()` /
+`applyPlanilhaRows()`. Veja o padrão dos documentos em
+[`docs/ANALISE_PEDIDOS_E_PLANILHAS.md`](docs/ANALISE_PEDIDOS_E_PLANILHAS.md).
 
 **Sincronização em nuvem (offline-first):** quando `firebase-config.js` tem
 chaves válidas, `cloud-sync.js` espelha o `braga_data` num documento do
@@ -98,11 +108,13 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
    (instalável/offline) e tem a camada de sync Firestore embutida. **Falta:**
    criar o projeto Firebase, colar as chaves e publicar no Netlify — guia em
    [`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md).
-2. **Persistir fotos** — chassi, avarias e placa hoje ficam no dispositivo;
+2. **Importar a frota / programação** — ✅ *pronto:* importador em lote de
+   PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi).
+   Próximo refino: importar direto do PDF/arquivo (hoje cola-se o texto).
+3. **Persistir fotos** — chassi, avarias e placa hoje ficam no dispositivo;
    passar para o Firebase Storage.
-3. **Sync por veículo** — trocar o last-write-wins por um documento por
+4. **Sync por veículo** — trocar o last-write-wins por um documento por
    veículo (edição simultânea sem risco de sobrescrita).
-4. **Importar a frota atual** — cadastrar os veículos em preparação.
 5. **Treinar a equipe** — cada pessoa com seu perfil.
 6. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
 
