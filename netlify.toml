@@ -1,0 +1,12 @@
+# Deploy do app "Braga Veículos — Gestão de Entregas" no Netlify.
+# Publica a pasta braga-veiculos/app como site estático (PWA).
+[build]
+  publish = "braga-veiculos/app"
+  command = ""
+
+# O service worker não deve ser cacheado pelo CDN, para que atualizações
+# do app cheguem rápido aos aparelhos.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

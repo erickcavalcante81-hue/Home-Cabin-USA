@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Braga Entregas">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d1a">
 <title>Braga Veículos — Gestão de Entregas</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<!-- Sincronização em nuvem (no-op enquanto firebase-config.js não tiver chaves) -->
+<script src="firebase-config.js"></script>
+<script src="cloud-sync.js"></script>
 <style>
 :root {
   --primary: #e8394f;
@@ -997,8 +1006,12 @@ function getStorage() {
 }
 function setStorage(data) {
   _memStore = data;
-  if (!USE_LOCAL) return;
-  try { localStorage.setItem('braga_data', JSON.stringify(data)); } catch(e) {}
+  if (USE_LOCAL) {
+    try { localStorage.setItem('braga_data', JSON.stringify(data)); } catch(e) {}
+  }
+  // Espelha na nuvem em tempo real (no-op se a sincronização estiver desligada
+  // ou se estivermos justamente aplicando um dado vindo de outro aparelho).
+  if (window.CloudSync && window.CloudSync.enabled && !window.CloudSync._applyingRemote) window.CloudSync.push(data);
 }
 
 let currentProfile = null;
@@ -1930,7 +1943,34 @@ function loadDemo() {
   data.nextId = nextId;
   setStorage(data);
 }
-loadDemo();
+
+// ===== BOOT: nuvem (se configurada) OU dados de exemplo (offline) =====
+if (window.CloudSync && window.CloudSync.enabled) {
+  window.CloudSync.init(
+    function onRemote(remoteData) {            // atualização vinda de outro aparelho
+      if (!remoteData || typeof remoteData !== 'object') return;
+      window.CloudSync._applyingRemote = true;
+      setStorage(remoteData);                  // grava local sem re-enviar à nuvem
+      window.CloudSync._applyingRemote = false;
+      if (currentProfile) renderAll();         // atualiza a tela se já estiver logado
+    },
+    function onEmpty() {                        // 1ª vez: nuvem vazia
+      var local = getStorage();                // se este aparelho já tem dados, sobe
+      if (local && local.vehicles && local.vehicles.length) window.CloudSync.push(local);
+    }
+  );
+} else {
+  loadDemo();                                  // modo offline: mantém dados de exemplo
+}
+
+// ===== PWA: registra o service worker (instalável + offline) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) {
+      console.warn('[PWA] service worker não registrou:', e);
+    });
+  });
+}
 </script>
 </body>
 </html>

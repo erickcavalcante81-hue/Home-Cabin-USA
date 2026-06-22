@@ -1,0 +1,17 @@
+{
+  "name": "Braga Veículos — Gestão de Entregas",
+  "short_name": "Braga Entregas",
+  "description": "Gestão de preparação e entrega de veículos zero km da Braga Veículos (Chevrolet).",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1117",
+  "theme_color": "#0d0d1a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

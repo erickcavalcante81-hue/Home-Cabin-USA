@@ -17,9 +17,15 @@ defeitos e dashboard gerencial.
 
 ```
 braga-veiculos/
-├── app/
-│   └── BRAGA_Gestao_Entregas.html      ← App principal (HTML/CSS/JS, 1 arquivo)
+├── app/                                 ← App publicável (PWA)
+│   ├── index.html                       ← App principal (era BRAGA_Gestao_Entregas.html)
+│   ├── manifest.webmanifest             ← PWA: instalável no celular
+│   ├── sw.js                            ← Service worker: funciona offline
+│   ├── cloud-sync.js                    ← Sincronização em tempo real (Firebase)
+│   ├── firebase-config.js               ← Chaves do Firebase (vazio = sync desligado)
+│   └── icons/                           ← Ícones do app (192/512/apple)
 └── docs/
+    ├── SETUP_NUVEM.md                   ← ★ Guia: pôr online + sincronizar
     ├── RESUMO_PROJETO_BRAGA_VEICULOS.md ← Resumo completo do projeto
     ├── CONTEXTO_PARA_NOVA_CONTA_COWORK.md
     ├── FLUXOGRAMA_Preparacao_Entrega_v4.pdf
@@ -31,17 +37,19 @@ braga-veiculos/
 
 ## Como rodar agora
 
-O app é um único arquivo HTML, sem dependências externas — basta abrir
-`app/BRAGA_Gestao_Entregas.html` no navegador (desktop ou celular).
-
-Para testar no iPhone via Wi-Fi local (Safari não abre `.html` local
-direto), sirva a pasta:
+O app não tem build nem dependências de instalação — sirva a pasta `app/`
+(o service worker e o manifest precisam de `http://`, não `file://`):
 
 ```bash
 cd braga-veiculos/app
 python3 -m http.server 8000
-# abra http://<ip-do-computador>:8000/BRAGA_Gestao_Entregas.html no celular
+# desktop:  http://localhost:8000
+# celular:  http://<ip-do-computador>:8000   (mesma rede Wi-Fi)
 ```
+
+No celular, use **Adicionar à Tela de Início** (iOS) / **Instalar app**
+(Android) para instalar como PWA. Para colocar online com link fixo e dados
+sincronizados entre aparelhos, siga **[`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md)**.
 
 ## Pipeline operacional (Fluxograma v4)
 
@@ -62,35 +70,41 @@ python3 -m http.server 8000
 **Remetentes WhatsApp autorizados:** Adriana · Adriano · Junior Leão ·
 Adriano Junior.
 
-## Modelo de dados atual
+## Modelo de dados e sincronização
 
-O app guarda tudo no `localStorage` do navegador, na chave **`braga_data`**:
+O app trabalha sobre o `localStorage` do navegador, na chave **`braga_data`**:
 
 ```js
 { vehicles: [], defects: [], intakes: [], nextId: 1 }
 ```
 
 Toda a persistência passa por duas funções isoladas — `getStorage()` e
-`setStorage()` (em `app/BRAGA_Gestao_Entregas.html`). Isso é proposital: a
-migração para um backend em nuvem (sincronização em tempo real entre
-dispositivos) se concentra basicamente em trocar essas duas funções por
-leitura/escrita assíncrona + um listener de atualizações.
+`setStorage()` (em `app/index.html`).
 
-**Limitação:** hoje cada dispositivo tem sua própria cópia dos dados (não há
-sincronização). Resolver isso é o próximo passo do projeto.
+**Sincronização em nuvem (offline-first):** quando `firebase-config.js` tem
+chaves válidas, `cloud-sync.js` espelha o `braga_data` num documento do
+Firestore (`braga/data`) e mantém todos os aparelhos em tempo real via
+`onSnapshot` — o `localStorage` segue como cache local, então o app funciona
+sem internet e sincroniza ao reconectar. **Sem chaves, a sincronização fica
+desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
+[`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md).
+
+> Conflito (v1): o banco inteiro é um documento; vale a última escrita
+> (*last-write-wins*). Evolução natural: um documento por veículo.
 
 ## Roadmap / próximos passos
 
-1. **Hospedar online + sincronizar dados** — eliminar a dependência de
-   servidor local e dar a toda a equipe uma cópia única e em tempo real.
-   Caminho sugerido: backend (Firebase Firestore ou Supabase) + hospedagem
-   estática (Netlify/Vercel) + PWA (instala como app no celular). Custo R$0
-   nos planos gratuitos.
+1. **Hospedar online + sincronizar dados** — ✅ *base pronta:* o app já é PWA
+   (instalável/offline) e tem a camada de sync Firestore embutida. **Falta:**
+   criar o projeto Firebase, colar as chaves e publicar no Netlify — guia em
+   [`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md).
 2. **Persistir fotos** — chassi, avarias e placa hoje ficam no dispositivo;
-   passar para storage em nuvem.
-3. **Importar a frota atual** — cadastrar os veículos em preparação.
-4. **Treinar a equipe** — cada pessoa com seu perfil.
-5. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
+   passar para o Firebase Storage.
+3. **Sync por veículo** — trocar o last-write-wins por um documento por
+   veículo (edição simultânea sem risco de sobrescrita).
+4. **Importar a frota atual** — cadastrar os veículos em preparação.
+5. **Treinar a equipe** — cada pessoa com seu perfil.
+6. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
 
 Documentos de referência completos em [`docs/`](docs/) — em especial
 [`RESUMO_PROJETO_BRAGA_VEICULOS.md`](docs/RESUMO_PROJETO_BRAGA_VEICULOS.md).
