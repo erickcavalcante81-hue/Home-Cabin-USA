@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Braga Entregas">
+<title>Braga Veículos — Gestão de Entregas</title>
+<style>
+:root {
+  --primary: #e8394f;
+  --primary-dark: #c41e3a;
+  --secondary: #0d0d1a;
+  --bg: #0f1117;
+  --card: #1a1d2e;
+  --border: #2a2d3e;
+  --text: #e8eaf0;
+  --text-light: #8b90a8;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
+  --green-bg: #052e16;
+  --yellow-bg: #1c1a00;
+  --red-bg: #1f0707;
+  --blue: #60a5fa;
+  --blue-bg: #0c1a3a;
+  --shadow: 0 2px 12px rgba(0,0,0,0.5);
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 16px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button { cursor: pointer; border: none; font-family: inherit; font-size: 14px; }
+input, select, textarea { font-family: inherit; font-size: 14px; }
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--secondary);
+  color: white;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow);
+}
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.header-logo img { height: 34px; }
+.header-title { font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+.header-subtitle { font-size: 12px; color: #9ca3af; margin-top: 1px; }
+.profile-badge {
+  background: var(--primary);
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #13162a;
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.4);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 4px 8px; gap: 4px; min-height: 60px;
+  color: var(--text-light); font-size: 11px; font-weight: 600;
+  background: none; border: none; cursor: pointer;
+  transition: color 0.2s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item svg { width: 26px; height: 26px; }
+
+/* ===== MAIN CONTENT ===== */
+.main { padding: 14px 14px 90px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card-title { font-weight: 700; font-size: 17px; }
+.card-subtitle { font-size: 14px; color: var(--text-light); margin-top: 2px; }
+
+/* ===== BADGES ===== */
+.badge {
+  padding: 5px 11px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-gray { background: #f3f4f6; color: #6b7280; }
+
+/* ===== STATUS BAR ===== */
+.status-bar {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 4px 0 10px; margin-bottom: 8px;
+  scrollbar-width: none;
+}
+.status-bar::-webkit-scrollbar { display: none; }
+.status-chip {
+  flex-shrink: 0; padding: 9px 16px;
+  border-radius: 22px; font-size: 13px; font-weight: 600;
+  background: #1a1d2e; border: 2px solid var(--border); color: var(--text-light);
+  cursor: pointer; transition: all 0.2s;
+}
+.status-chip.active { border-color: var(--primary); color: var(--primary); background: #fff0f2; }
+
+/* ===== VEHICLE CARD ===== */
+.vehicle-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 16px;
+  margin-bottom: 12px; cursor: pointer;
+  border-left: 5px solid #2a2d3e;
+  transition: transform 0.1s;
+  position: relative;
+}
+.vehicle-card:active { transform: scale(0.98); }
+.vehicle-card.status-green { border-left-color: var(--green); }
+.vehicle-card.status-yellow { border-left-color: var(--yellow); }
+.vehicle-card.status-red { border-left-color: var(--red); }
+.vehicle-card.status-blue { border-left-color: var(--blue); }
+.vehicle-info { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.vehicle-model { font-weight: 800; font-size: 17px; letter-spacing: 0.2px; }
+.vehicle-meta { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+.vehicle-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.progress-bar { height: 7px; background: #252840; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
+.stage-label { font-size: 13px; font-weight: 600; color: var(--text-light); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 13px 20px; border-radius: 10px;
+  font-weight: 700; font-size: 15px;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 48px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: #252840; color: var(--text); border: 1.5px solid var(--border); }
+.btn-success { background: var(--green); color: white; }
+.btn-danger { background: var(--red); color: white; }
+.btn-sm { padding: 9px 16px; font-size: 13px; min-height: 40px; }
+.btn-block { width: 100%; justify-content: center; }
+.btn-icon { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; min-height: unset; }
+
+/* ===== FAB ===== */
+.fab {
+  position: fixed; bottom: 88px; right: 18px;
+  width: 58px; height: 58px;
+  background: var(--primary); color: white;
+  border-radius: 50%; font-size: 28px; font-weight: 300;
+  box-shadow: 0 4px 20px rgba(232,57,79,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 90;
+  transition: transform 0.2s;
+}
+.fab:active { transform: scale(0.92); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #13162a; border-radius: 18px 18px 0 0;
+  width: 100%; max-height: 92vh; overflow-y: auto;
+  padding: 16px; animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: #d1d5db; border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+/* ===== DETAIL MODAL (full screen) ===== */
+.detail-modal {
+  position: fixed; inset: 0; background: #0f1117;
+  z-index: 300; display: none; flex-direction: column;
+  overflow: hidden;
+}
+.detail-modal.open { display: flex; }
+.detail-header {
+  background: var(--secondary); color: white;
+  padding: 14px 18px; display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.detail-header h2 { font-size: 18px; flex: 1; font-weight: 800; }
+.detail-body { flex: 1; overflow-y: auto; padding: 12px; }
+.detail-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 12px; background: #13162a; }
+.detail-tab {
+  flex: 1; padding: 13px 4px; text-align: center;
+  font-size: 13px; font-weight: 700; color: var(--text-light);
+  background: none; border: none; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; cursor: pointer;
+}
+.detail-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 13px; font-weight: 700; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-control {
+  width: 100%; padding: 13px 14px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 16px; transition: border-color 0.2s;
+  background: #0f1117; color: var(--text);
+  min-height: 48px;
+}
+.form-control:focus { outline: none; border-color: var(--primary); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ===== CHECKLIST ===== */
+.checklist-stage {
+  background: var(--card); border-radius: var(--radius);
+  margin-bottom: 12px; overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.checklist-stage-header {
+  padding: 12px 14px; display: flex; align-items: center;
+  justify-content: space-between; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.checklist-stage-title { font-weight: 700; font-size: 14px; }
+.checklist-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px; border-bottom: 1px solid #22253a;
+  cursor: pointer;
+}
+.checklist-item:last-child { border-bottom: none; }
+.check-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border); flex-shrink: 0;
+  margin-top: 1px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.check-circle.checked { background: var(--green); border-color: var(--green); }
+.check-circle svg { display: none; }
+.check-circle.checked svg { display: block; }
+.check-text { flex: 1; font-size: 15px; line-height: 1.5; }
+.check-text.checked { text-decoration: line-through; color: var(--text-light); }
+
+/* ===== DASHBOARD ===== */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.kpi-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; text-align: center; box-shadow: var(--shadow);
+}
+.kpi-number { font-size: 38px; font-weight: 900; color: var(--primary); }
+.kpi-label { font-size: 12px; color: var(--text-light); font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.kpi-card.green .kpi-number { color: var(--green); }
+.kpi-card.yellow .kpi-number { color: var(--yellow); }
+.kpi-card.red .kpi-number { color: var(--red); }
+
+/* ===== PIPELINE ===== */
+.pipeline-stage {
+  background: var(--card); border-radius: var(--radius);
+  margin-bottom: 8px; box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.pipeline-stage-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: var(--secondary); color: white;
+  cursor: pointer;
+}
+.pipeline-stage-title { font-weight: 700; font-size: 15px; }
+.pipeline-count {
+  background: var(--primary); width: 22px; height: 22px;
+  border-radius: 50%; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ===== ACESSORIOS ===== */
+.acc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+}
+.acc-item:last-child { border-bottom: none; }
+.acc-check { width: 28px; height: 28px; border-radius: 6px; border: 2px solid var(--border); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.acc-check.checked { background: var(--green); border-color: var(--green); }
+.acc-info { flex: 1; }
+.acc-name { font-weight: 600; font-size: 13px; }
+.acc-detail { font-size: 11px; color: var(--text-light); }
+
+/* ===== SECTION HEADERS ===== */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-title { font-size: 17px; font-weight: 800; }
+.section-count { font-size: 13px; color: var(--text-light); }
+
+/* ===== EMPTY STATE ===== */
+.empty { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* ===== LOGIN ===== */
+.login-screen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px; background: #08090f;
+}
+.login-logo { margin-bottom: 32px; text-align: center; }
+.login-logo h1 { color: white; font-size: 28px; font-weight: 900; }
+.login-logo p { color: #9ca3af; font-size: 15px; margin-top: 6px; }
+.login-chevron { color: var(--primary); font-size: 46px; font-weight: 900; margin-bottom: 10px; }
+.profile-option {
+  width: 100%; padding: 16px; margin-bottom: 12px;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: white; text-align: left;
+  display: flex; align-items: center; gap: 14px; cursor: pointer;
+  transition: all 0.2s;
+}
+.profile-option:hover { background: rgba(196,30,58,0.3); border-color: var(--primary); }
+.profile-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.profile-name { font-weight: 800; font-size: 17px; }
+.profile-desc { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  background: #2a2d4a; color: white; padding: 10px 20px;
+  border-radius: 24px; font-size: 13px; font-weight: 600;
+  z-index: 1000; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ===== TIMELINE ===== */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 16px; }
+.timeline-dot { position: absolute; left: -20px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); border: 2px solid white; }
+.timeline-dot.done { background: var(--green); }
+.timeline-dot.current { background: var(--primary); }
+.timeline-text { font-size: 13px; color: var(--text-light); }
+.timeline-text strong { color: var(--text); }
+
+/* ===== SECTION DIVIDER ===== */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ===== SEARCH ===== */
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 12px;
+}
+.search-box input { border: none; outline: none; flex: 1; font-size: 15px; background: transparent; color: var(--text); }
+.search-box svg { color: var(--text-light); flex-shrink: 0; }
+
+/* ===== DEFECTS ===== */
+.defect-card {
+  background: white; border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow);
+  border-left: 3px solid var(--red);
+}
+.defect-card.resolved { border-left-color: var(--green); opacity: 0.7; }
+
+/* ===== INTAKE ===== */
+.source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.source-btn {
+  padding: 16px 10px; border-radius: 10px;
+  border: 2px solid var(--border); background: #1a1d2e;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: all 0.2s; font-size: 12px; font-weight: 600; color: var(--text-light);
+}
+.source-btn .src-icon { font-size: 26px; }
+.source-btn.selected { border-color: var(--primary); background: #fff0f2; color: var(--primary); }
+.authorized-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.auth-btn {
+  padding: 10px 8px; border-radius: 8px; border: 2px solid var(--border);
+  background: #1a1d2e; font-size: 12px; font-weight: 600; color: var(--text-light);
+  cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.auth-btn.selected { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: 10px;
+  padding: 24px; text-align: center; cursor: pointer;
+  background: #13162a; transition: all 0.2s;
+  color: var(--text-light); font-size: 13px;
+}
+.drop-zone.over { border-color: var(--primary); background: #fff0f2; }
+.intake-card {
+  background: white; border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow);
+  border-left: 4px solid var(--primary); cursor: pointer;
+}
+.intake-card.processed { border-left-color: var(--green); }
+.intake-card.rejected { border-left-color: var(--red); opacity: 0.6; }
+.parsed-field { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
+.parsed-field:last-child { border-bottom: none; }
+.parsed-key { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; min-width: 90px; padding-top: 2px; }
+.parsed-val { font-size: 13px; flex: 1; }
+.confidence-bar { height: 4px; border-radius: 2px; background: #e5e7eb; margin-top: 8px; overflow: hidden; }
+.confidence-fill { height: 100%; border-radius: 2px; background: var(--green); }
+
+/* RESPONSIVE */
+@media (min-width: 600px) {
+  .main { max-width: 600px; margin: 0 auto; padding: 16px 16px 80px; }
+  .bottom-nav { max-width: 600px; left: 50%; transform: translateX(-50%); }
+  .fab { right: calc(50% - 300px + 16px); }
+  .header { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-logo">
+    <div class="login-chevron">⬡ CHEVROLET</div>
+    <h1>Braga Veículos</h1>
+    <p>Gestão de Preparação e Entrega</p>
+  </div>
+  <div style="width:100%;max-width:380px">
+    <p style="color:#9ca3af;font-size:13px;text-align:center;margin-bottom:16px">Selecione seu perfil para continuar</p>
+    <button class="profile-option" onclick="login('gerente', 'Gerente')">
+      <div class="profile-icon">📊</div>
+      <div><div class="profile-name">Gerente / Dashboard</div><div class="profile-desc">Visão geral, métricas e alertas</div></div>
+    </button>
+    <button class="profile-option" onclick="login('programador', 'Helena')">
+      <div class="profile-icon">📋</div>
+      <div><div class="profile-name">Helena — Programador</div><div class="profile-desc">Cadastro, pipeline e agendamentos</div></div>
+    </button>
+    <button class="profile-option" onclick="login('programador', 'Adriano')">
+      <div class="profile-icon">👨‍💼</div>
+      <div><div class="profile-name">Adriano — Co-Programador</div><div class="profile-desc">Recebe pedidos, cadastra veículos e atualiza lista</div></div>
+    </button>
+    <button class="profile-option" onclick="login('preparador', 'Preparador')">
+      <div class="profile-icon">🔧</div>
+      <div><div class="profile-name">Preparador de Veículos</div><div class="profile-desc">Checklists e registro de defeitos</div></div>
+    </button>
+    <button class="profile-option" onclick="login('instalador', 'Instalador')">
+      <div class="profile-icon">🛠️</div>
+      <div><div class="profile-name">Instalador de Acessórios</div><div class="profile-desc">Confirmação de instalação</div></div>
+    </button>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" style="display:none">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div>
+      <div class="header-title">Braga Veículos</div>
+      <div class="header-subtitle">Preparação & Entrega</div>
+    </div>
+  </div>
+  <div class="profile-badge" onclick="logout()" id="profileBadge">—</div>
+</div>
+
+<!-- PAGES -->
+<div class="main">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="pageDashboard" class="page active">
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-number" id="kpiTotal">0</div><div class="kpi-label">Em Preparação</div></div>
+      <div class="kpi-card green"><div class="kpi-number" id="kpiOnTime">0</div><div class="kpi-label">No Prazo</div></div>
+      <div class="kpi-card yellow"><div class="kpi-number" id="kpiWarning">0</div><div class="kpi-label">Atenção</div></div>
+      <div class="kpi-card red"><div class="kpi-number" id="kpiLate">0</div><div class="kpi-label">Atrasados</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header"><div class="card-title">📅 Entregas Hoje</div></div>
+      <div id="dashToday"></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Pipeline por Etapa</div>
+    </div>
+    <div id="dashPipeline"></div>
+  </div>
+
+  <!-- ===== VEHICLES LIST ===== -->
+  <div id="pageVehicles" class="page">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Buscar por modelo, cliente, placa..." id="searchInput" oninput="renderVehicles()">
+    </div>
+    <div class="status-bar" id="stageFilter">
+      <div class="status-chip active" data-stage="all" onclick="filterStage('all',this)">Todos</div>
+      <div class="status-chip" data-stage="0" onclick="filterStage('0',this)">🔍 Localização</div>
+      <div class="status-chip" data-stage="1" onclick="filterStage('1',this)">🛠️ Acessórios</div>
+      <div class="status-chip" data-stage="2" onclick="filterStage('2',this)">📅 Conf. Data</div>
+      <div class="status-chip" data-stage="3" onclick="filterStage('3',this)">📋 Lista Entrega</div>
+      <div class="status-chip" data-stage="4" onclick="filterStage('4',this)">✨ Lavagem</div>
+      <div class="status-chip" data-stage="5" onclick="filterStage('5',this)">🎯 Qualidade</div>
+      <div class="status-chip" data-stage="6" onclick="filterStage('6',this)">🚗 Entregador</div>
+      <div class="status-chip" data-stage="7" onclick="filterStage('7',this)">✅ Concluído</div>
+    </div>
+    <div id="vehiclesList"></div>
+  </div>
+
+  <!-- ===== CHECKLISTS ===== -->
+  <div id="pageChecklists" class="page">
+    <div class="section-header">
+      <div class="section-title">Checklists Ativos</div>
+    </div>
+    <div id="checklistVehicles"></div>
+  </div>
+
+  <!-- ===== ENTRADA DE PEDIDOS ===== -->
+  <div id="pageEntrada" class="page">
+    <div id="entradaQuickActions" style="display:none;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Ação Rápida</div>
+      <button class="btn btn-success btn-block" onclick="openIntakePreFilled()" style="font-size:15px;padding:16px">
+        💬 Recebi mensagem da Helena — Cadastrar Veículo
+      </button>
+    </div>
+    <div class="section-header">
+      <div class="section-title">📥 Entradas Recebidas</div>
+      <button class="btn btn-primary btn-sm" onclick="openIntakeModal()">+ Nova Entrada</button>
+    </div>
+    <div id="intakeList"></div>
+  </div>
+
+  <!-- ===== DEFEITOS ===== -->
+  <div id="pageDefeitos" class="page">
+    <div class="section-header">
+      <div class="section-title">Registro de Defeitos</div>
+      <button class="btn btn-primary btn-sm" onclick="openDefectModal()">+ Novo</button>
+    </div>
+    <div id="defectsList"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" onclick="openNewVehicleModal()">+</button>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" data-page="Dashboard" onclick="showPage('Dashboard',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </button>
+  <button class="nav-item" data-page="Vehicles" onclick="showPage('Vehicles',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    Veículos
+  </button>
+  <button class="nav-item" data-page="Checklists" onclick="showPage('Checklists',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Checklist
+  </button>
+  <button class="nav-item" data-page="Entrada" onclick="showPage('Entrada',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Entrada
+  </button>
+  <button class="nav-item" data-page="Defeitos" onclick="showPage('Defeitos',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Defeitos
+  </button>
+</div>
+
+</div><!-- /appShell -->
+
+<!-- MODAL: NEW VEHICLE -->
+<div class="modal-overlay" id="newVehicleModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo Veículo em Preparação</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Modelo</label>
+        <select class="form-control" id="nv_model">
+          <option value="">Selecione...</option>
+          <option>Onix</option><option>Onix Plus</option><option>Tracker</option>
+          <option>Equinox</option><option>S10</option><option>Montana</option>
+          <option>Trailblazer</option><option>Blazer</option><option>Spin</option>
+          <option>Cobalt</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cor</label>
+        <input class="form-control" id="nv_color" placeholder="Ex: Branco Summit">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Placa / Chassi</label>
+        <input class="form-control" id="nv_plate" placeholder="ABC-1234 ou chassi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nº Fatura</label>
+        <input class="form-control" id="nv_invoice" placeholder="Ex: 12345">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cliente</label>
+      <input class="form-control" id="nv_client" placeholder="Nome do cliente">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Celular Cliente</label>
+        <input class="form-control" id="nv_phone" placeholder="(92) 9 ..." type="tel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data Fatura</label>
+        <input class="form-control" id="nv_invoiceDate" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Consultor de Vendas</label>
+      <input class="form-control" id="nv_seller" placeholder="Nome do vendedor">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Acessórios Contratados</label>
+      <div id="accList" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input class="form-control" id="accInput" placeholder="Nome do acessório..." style="flex:1">
+        <button class="btn btn-secondary btn-sm" onclick="addAccessory()">+Add</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observações</label>
+      <textarea class="form-control" id="nv_obs" rows="2" placeholder="Pendências, particularidades..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-secondary btn-block" onclick="closeModal('newVehicleModal')">Cancelar</button>
+      <button class="btn btn-primary btn-block" onclick="saveNewVehicle()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NEW DEFECT -->
+<div class="modal-overlay" id="defectModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar Defeito</div>
+    <div class="form-group">
+      <label class="form-label">Veículo</label>
+      <select class="form-control" id="def_vehicle"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de Defeito</label>
+        <select class="form-control" id="def_type">
+          <option>Pintura / Amassado</option>
+          <option>Riscos / Arranhões</option>
+          <option>Vidro / Para-brisa</option>
+          <option>Bancos / Estofado</option>
+          <option>Elétrico / Eletrônico</option>
+          <option>Mecânico</option>
+          <option>Acessório faltante</option>
+          <option>Acessório com defeito</option>
+          <option>Documentação</option>
+          <option>Limpeza</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Local no Veículo</label>
+        <select class="form-control" id="def_location">
+          <option>Capo / Frontal</option>
+          <option>Lateral Direita</option>
+          <option>Lateral Esquerda</option>
+          <option>Traseira / Tampa</option>
+          <option>Teto</option>
+          <option>Interior</option>
+          <option>Motor</option>
+          <option>Pneus / Rodas</option>
+          <option>Geral</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control" id="def_desc" rows="3" placeholder="Descreva o defeito..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Inspecionador</label>
+        <input class="form-control" id="def_inspector" placeholder="Seu nome">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Severidade</label>
+        <select class="form-control" id="def_severity">
+          <option value="alta">🔴 Alta</option>
+          <option value="media">🟡 Média</option>
+          <option value="baixa">🟢 Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-secondary btn-block" onclick="closeModal('defectModal')">Cancelar</button>
+      <button class="btn btn-danger btn-block" onclick="saveDefect()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL: VEHICLE -->
+<div class="detail-modal" id="vehicleDetail">
+  <div class="detail-header">
+    <button onclick="closeDetail()" style="background:none;border:none;color:white;font-size:22px;padding:0;line-height:1">‹</button>
+    <h2 id="detailTitle">—</h2>
+    <div id="detailBadge"></div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="showDetailTab('info',this)">Geral</button>
+      <button class="detail-tab" onclick="showDetailTab('checklist',this)">Checklist</button>
+      <button class="detail-tab" onclick="showDetailTab('accessories',this)">Acessórios</button>
+      <button class="detail-tab" onclick="showDetailTab('history',this)">Histórico</button>
+    </div>
+    <div id="detailTabInfo"></div>
+    <div id="detailTabChecklist" style="display:none"></div>
+    <div id="detailTabAccessories" style="display:none"></div>
+    <div id="detailTabHistory" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MODAL: INTAKE (Step 1 — Source & Text) -->
+<div class="modal-overlay" id="intakeModal" style="align-items:flex-start;padding-top:0">
+  <div class="modal" style="border-radius:0;max-height:100vh;min-height:100vh;padding-bottom:24px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button onclick="closeModal('intakeModal')" style="background:none;border:none;font-size:22px;color:#6b7280;cursor:pointer">✕</button>
+      <div style="font-size:17px;font-weight:700">Nova Entrada de Pedido</div>
+    </div>
+
+    <!-- Step 1: source -->
+    <div id="intakeStep1">
+      <div class="form-label" style="margin-bottom:8px">Origem do pedido</div>
+      <div class="source-grid">
+        <button class="source-btn" id="src_email" onclick="selectSource('email')">
+          <span class="src-icon">📧</span><span>E-mail</span>
+        </button>
+        <button class="source-btn" id="src_whatsapp" onclick="selectSource('whatsapp')">
+          <span class="src-icon">💬</span><span>WhatsApp</span>
+        </button>
+        <button class="source-btn" id="src_pdf" onclick="selectSource('pdf')">
+          <span class="src-icon">📄</span><span>PDF</span>
+        </button>
+        <button class="source-btn" id="src_image" onclick="selectSource('image')">
+          <span class="src-icon">🖼️</span><span>Imagem / Print</span>
+        </button>
+      </div>
+
+      <!-- WhatsApp authorized sender -->
+      <div id="authBlock" style="display:none;margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:8px">⚠️ Remetente Autorizado (obrigatório)</div>
+        <div class="authorized-grid">
+          <button class="auth-btn" id="auth_adriana" onclick="selectSender('Adriana')">👩 Adriana</button>
+          <button class="auth-btn" id="auth_adriano" onclick="selectSender('Adriano')">👨 Adriano</button>
+          <button class="auth-btn" id="auth_junior" onclick="selectSender('Junior Leão')">👨 Junior Leão</button>
+          <button class="auth-btn" id="auth_adrianojr" onclick="selectSender('Adriano Junior')">👦 Adriano Junior</button>
+        </div>
+        <div id="unauthorizedWarn" style="display:none;background:var(--red-bg);color:var(--red);border-radius:8px;padding:10px;font-size:13px;font-weight:600;margin-bottom:8px">
+          ⛔ Somente Adriana, Adriano, Junior Leão e Adriano Junior podem enviar pedidos via WhatsApp.
+        </div>
+      </div>
+
+      <!-- Text paste -->
+      <div id="textBlock" style="display:none;margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:6px">Cole aqui o texto do pedido</div>
+        <textarea id="intakeText" class="form-control" rows="7"
+          placeholder="Cole a mensagem do WhatsApp ou e-mail aqui...&#10;&#10;Ex: Onix Plus branco summit, cliente João Silva, instalar película 3M, tapetes premium e sensor de estacionamento. Fatura 8921."></textarea>
+      </div>
+
+      <!-- File upload (PDF / Image) -->
+      <div id="fileBlock" style="display:none;margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:6px">Faça upload do arquivo</div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="handleDrop(event)">
+          <div style="font-size:32px;margin-bottom:8px">📁</div>
+          <div style="font-weight:600">Toque para selecionar arquivo</div>
+          <div style="font-size:12px;margin-top:4px">PDF, JPG, PNG, WEBP</div>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleFileSelect(event)">
+        <div id="filePreview" style="margin-top:12px"></div>
+        <div class="form-group" style="margin-top:12px">
+          <div class="form-label">Após ver o arquivo, informe os dados:</div>
+          <textarea id="intakeTextFromFile" class="form-control" rows="5"
+            placeholder="Transcreva as informações do documento:&#10;Modelo, Cor, Cliente, Acessórios, Nº Pedido..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="processIntake()" id="btnProcess" disabled style="margin-top:8px">
+        🔍 Processar e Extrair Dados
+      </button>
+    </div>
+
+    <!-- Step 2: parsed results + confirm form -->
+    <div id="intakeStep2" style="display:none">
+      <div style="background:var(--green-bg);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-weight:700;color:var(--green);font-size:14px">✅ Dados extraídos automaticamente</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">Revise os campos abaixo antes de confirmar</div>
+        <div class="confidence-bar"><div class="confidence-fill" id="confBar" style="width:0%"></div></div>
+        <div style="font-size:11px;color:#166534;margin-top:4px" id="confLabel"></div>
+      </div>
+
+      <div id="parsedPreview" style="background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:14px;font-size:13px"></div>
+
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px">Confirmar / Ajustar Cadastro</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Modelo</label>
+          <select class="form-control" id="p_model">
+            <option value="">Selecione...</option>
+            <option>Onix</option><option>Onix Plus</option><option>Tracker</option>
+            <option>Equinox</option><option>S10</option><option>Montana</option>
+            <option>Trailblazer</option><option>Blazer</option><option>Spin</option><option>Cobalt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cor</label>
+          <input class="form-control" id="p_color" placeholder="Ex: Branco Summit">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <input class="form-control" id="p_client" placeholder="Nome do cliente">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Placa / Chassi</label>
+          <input class="form-control" id="p_plate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nº Fatura / Pedido</label>
+          <input class="form-control" id="p_invoice">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Celular</label>
+          <input class="form-control" id="p_phone" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data Fatura</label>
+          <input class="form-control" id="p_date" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Consultor de Vendas</label>
+        <input class="form-control" id="p_seller">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Acessórios Detectados</label>
+        <div id="p_accList" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input class="form-control" id="p_accInput" placeholder="Adicionar acessório..." style="flex:1">
+          <button class="btn btn-secondary btn-sm" onclick="addParsedAcc()">+Add</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <textarea class="form-control" id="p_obs" rows="2"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-secondary" onclick="intakeBack()">‹ Voltar</button>
+        <button class="btn btn-primary btn-block" onclick="confirmIntake()">✓ Cadastrar Veículo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STORAGE LAYER (localStorage + memória fallback) =====
+let _memStore = null;
+function _storageAvailable() {
+  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; }
+  catch(e) { return false; }
+}
+const USE_LOCAL = _storageAvailable();
+
+// ===== DATA STORE =====
+const STAGES = [
+  { name: 'Localização Chassi',      icon: '🔍', days: 0, color: '#f59e0b',  resp: 'Equipe Pátio' },
+  { name: 'Acessórios / Películas',  icon: '🛠️', days: 1, color: '#8b5cf6',  resp: 'Parazinho' },
+  { name: 'Confirmação de Data',     icon: '📅', days: 1, color: '#06b6d4',  resp: 'Adriano' },
+  { name: 'Lista de Entrega',        icon: '📋', days: 0, color: '#f97316',  resp: 'Adriano' },
+  { name: 'Lavagem e Acabamento',    icon: '✨', days: 1, color: '#0891b2',  resp: 'Lavador' },
+  { name: 'Qualidade + Placa',       icon: '🎯', days: 0, color: '#e8394f',  resp: 'Responsável' },
+  { name: 'Entregador Técnico',      icon: '🚗', days: 0, color: '#16a34a',  resp: 'Braga' },
+  { name: 'Concluído',               icon: '✅', days: 0, color: '#16a34a',  resp: '—' }
+];
+
+const CHECKLIST_TEMPLATES = [
+  { // Etapa 0: Localização Chassi
+    stage: 0, items: [
+      '📸 OBRIGATÓRIO — Foto do chassi registrada no app',
+      'Chassi localizado fisicamente no pátio',
+      'Número do chassi confere com o pedido cadastrado',
+      'Inspeção visual externa do veículo realizada',
+      'Veículo sem avaria — confirmado',
+      'Se houver avaria: 📸 foto da avaria registrada no app',
+      'Se houver avaria: Braga Veículos notificada',
+      'Veículo liberado para instalação de acessórios'
+    ]
+  },
+  { // Etapa 1: Acessórios / Películas — Parazinho
+    stage: 1, items: [
+      'Lista de acessórios recebida e conferida com o pedido',
+      'Todos os acessórios disponíveis em estoque confirmados',
+      'Veículo posicionado na área de instalação (Parazinho)',
+      'Instalação dos acessórios concluída — item a item no app ✓',
+      'Aplicação das películas concluída',
+      'Nenhum dano causado durante a instalação',
+      'Conferência pelo Responsável — qualidade aprovada',
+      'Responsável assina aprovação no app ✓',
+      'Veículo liberado — aguardando confirmação de data'
+    ]
+  },
+  { // Etapa 2: Confirmação de Data
+    stage: 2, items: [
+      'Adriano contata o cliente para confirmar data e horário',
+      'Data de entrega confirmada com o cliente',
+      'Horário de entrega confirmado (entregas das 9h às 17h)',
+      'Registro da data/horário no app',
+      'Equipe notificada via WhatsApp / e-mail',
+      'Veículo incluído na Lista de Entrega'
+    ]
+  },
+  { // Etapa 3: Lista de Entrega
+    stage: 3, items: [
+      'Veículo na Lista de Entrega — posição confirmada',
+      'Agendamento da lavagem realizado (planilha de entrega)',
+      'Lavador notificado: grupo WhatsApp / e-mail / mensagem',
+      'Data e horário da lavagem definidos',
+      'Adriano confirmou sequência: lavagem → qualidade → placa → entrega'
+    ]
+  },
+  { // Etapa 4: Lavagem e Acabamento
+    stage: 4, items: [
+      'Pré-lavagem externa realizada',
+      'Lavagem completa externa concluída',
+      'Lavagem interna / higienização concluída',
+      'Vidros limpos (interno e externo)',
+      'Rodas, pneus e calotas limpas',
+      'Borrachas e plásticos tratados',
+      'Acabamento final inspecionado pelo lavador',
+      'Veículo seco e sem manchas',
+      'Veículo entregue ao Responsável para inspeção de qualidade'
+    ]
+  },
+  { // Etapa 5: Qualidade + Placa
+    stage: 5, items: [
+      'Inspeção de qualidade da lavagem aprovada pelo Responsável',
+      'Acabamento externo — sem manchas, riscos ou resíduos',
+      'Acabamento interno — limpo, sem odor, sem resíduos',
+      'Todos os acessórios e películas intactos após a lavagem',
+      'PLACA INSTALADA no veículo ✓',
+      'Placa conferida — número correto',
+      '📸 OBRIGATÓRIO — Foto da placa instalada no veículo',
+      'Veículo aprovado — pronto para entrega ao Entregador Técnico Braga'
+    ]
+  },
+  { // Etapa 6: Entregador Técnico Braga
+    stage: 6, items: [
+      'Entregador Técnico Braga notificado',
+      'Conferência completa do serviço pelo Entregador Técnico',
+      'Acessórios e películas — conferidos e aprovados',
+      'Qualidade da lavagem e acabamento — aprovada',
+      'Placa instalada e correta — conferida',
+      '📸 OBRIGATÓRIO — Foto do chassi (registro final)',
+      '📸 OBRIGATÓRIO — Foto da placa instalada no veículo',
+      'Aceite e assinatura do Entregador Técnico Braga',
+      'Serviço registrado como concluído no app ✓'
+    ]
+  }
+];
+
+const EMPTY_DB = () => ({ vehicles:[], defects:[], intakes:[], nextId:1 });
+function getStorage() {
+  if (!USE_LOCAL) return _memStore || EMPTY_DB();
+  try {
+    const raw = localStorage.getItem('braga_data');
+    if (!raw) return EMPTY_DB();
+    const d = JSON.parse(raw);
+    if (!d.intakes) d.intakes = [];
+    return d;
+  } catch(e) { return _memStore || EMPTY_DB(); }
+}
+function setStorage(data) {
+  _memStore = data;
+  if (!USE_LOCAL) return;
+  try { localStorage.setItem('braga_data', JSON.stringify(data)); } catch(e) {}
+}
+
+let currentProfile = null;
+let activeStageFilter = 'all';
+let currentVehicleId = null;
+let currentDetailTab = 'info';
+let pendingAccessories = [];
+
+// ===== APP INIT =====
+let currentUserName = '';
+function login(profile, userName) {
+  currentProfile = profile;
+  currentUserName = userName || '';
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  const roleNames = { gerente:'Gerente', programador:'Programador', preparador:'Preparador', instalador:'Instalador' };
+  const displayName = userName || roleNames[profile];
+  document.getElementById('profileBadge').textContent = displayName;
+  // Show/hide FAB and tabs based on profile
+  const canAdd = ['programador','gerente'].includes(profile);
+  document.getElementById('fabBtn').style.display = canAdd ? 'flex' : 'none';
+  if (!USE_LOCAL) {
+    setTimeout(() => toast('⚠️ Modo memória — dados não salvos ao fechar'), 1500);
+  }
+  renderAll();
+  setDefaultDate();
+}
+function logout() {
+  if(!confirm('Trocar de perfil?')) return;
+  currentProfile = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').style.display = 'none';
+}
+function setDefaultDate() {
+  const today = new Date().toISOString().split('T')[0];
+  const el = document.getElementById('nv_invoiceDate');
+  if(el) el.value = today;
+}
+
+// ===== NAVIGATION =====
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page'+page).classList.add('active');
+  btn.classList.add('active');
+  const fabPages = ['Vehicles'];
+  document.getElementById('fabBtn').style.display =
+    (fabPages.includes(page) && ['programador','gerente'].includes(currentProfile)) ? 'flex' : 'none';
+  if(page === 'Dashboard') renderDashboard();
+  if(page === 'Vehicles') renderVehicles();
+  if(page === 'Checklists') renderChecklistVehicles();
+  if(page === 'Entrada') {
+    renderIntakeList();
+    const qa = document.getElementById('entradaQuickActions');
+    if(qa) qa.style.display = currentUserName === 'Adriano' ? 'block' : 'none';
+  }
+  if(page === 'Defeitos') renderDefects();
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  renderDashboard();
+  renderVehicles();
+  renderChecklistVehicles();
+  renderIntakeList();
+  renderDefects();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const data = getStorage();
+  const active = data.vehicles.filter(v => v.stage < 7);
+  let onTime=0, warning=0, late=0;
+  active.forEach(v => {
+    const s = getStatus(v);
+    if(s==='green') onTime++;
+    else if(s==='yellow') warning++;
+    else late++;
+  });
+  document.getElementById('kpiTotal').textContent = active.length;
+  document.getElementById('kpiOnTime').textContent = onTime;
+  document.getElementById('kpiWarning').textContent = warning;
+  document.getElementById('kpiLate').textContent = late;
+
+  // Today's deliveries
+  const today = new Date().toISOString().split('T')[0];
+  const todayDel = data.vehicles.filter(v => v.deliveryDate === today && v.stage < 7);
+  const todayDiv = document.getElementById('dashToday');
+  if(todayDel.length === 0) {
+    todayDiv.innerHTML = '<div style="color:#6b7280;font-size:13px;padding:4px 0">Nenhuma entrega agendada para hoje.</div>';
+  } else {
+    todayDiv.innerHTML = todayDel.map(v => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="openDetail(${v.id})">
+        <div>
+          <div style="font-weight:700;font-size:14px">${v.model} — ${v.client}</div>
+          <div style="font-size:12px;color:#6b7280">${v.plate || 'S/Placa'}</div>
+        </div>
+        <span class="badge badge-${getStatus(v)}">${STAGES[v.stage].name}</span>
+      </div>
+    `).join('');
+  }
+
+  // Pipeline
+  const pipeDiv = document.getElementById('dashPipeline');
+  pipeDiv.innerHTML = STAGES.map((stage, idx) => {
+    const vehicles = data.vehicles.filter(v => v.stage === idx);
+    if(vehicles.length === 0 && idx === 6) return '';
+    return `
+      <div class="pipeline-stage" style="margin-bottom:8px">
+        <div class="pipeline-stage-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>${stage.icon}</span>
+            <span class="pipeline-stage-title">${stage.name}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="pipeline-count">${vehicles.length}</div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div style="display:${idx<3?'block':'none'}">
+          ${vehicles.length === 0 ? '<div style="padding:10px 14px;color:#6b7280;font-size:13px">Nenhum veículo nesta etapa</div>' :
+            vehicles.map(v => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="openDetail(${v.id})">
+                <div>
+                  <div style="font-weight:600;font-size:13px">${v.model} — ${v.client}</div>
+                  <div style="font-size:11px;color:#6b7280">${v.plate||'S/Placa'} · ${daysInStage(v)} dia(s) nesta etapa</div>
+                </div>
+                <div style="width:10px;height:10px;border-radius:50%;background:var(--${getStatus(v)});flex-shrink:0"></div>
+              </div>
+            `).join('')
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== VEHICLES LIST =====
+function filterStage(stage, el) {
+  activeStageFilter = stage;
+  document.querySelectorAll('.status-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderVehicles();
+}
+function renderVehicles() {
+  const data = getStorage();
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let list = data.vehicles.filter(v => {
+    if(activeStageFilter !== 'all' && v.stage !== parseInt(activeStageFilter)) return false;
+    if(search && !`${v.model} ${v.client} ${v.plate} ${v.invoice}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const container = document.getElementById('vehiclesList');
+  if(list.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🚗</div><div class="empty-text">Nenhum veículo encontrado</div></div>`;
+    return;
+  }
+  container.innerHTML = list.map(v => {
+    const status = getStatus(v);
+    const progress = Math.round((v.stage / 6) * 100);
+    const days = daysSince(v.invoiceDate);
+    return `
+      <div class="vehicle-card status-${status}" onclick="openDetail(${v.id})">
+        <div class="vehicle-info">
+          <div>
+            <div class="vehicle-model">${v.model}${v.color?' · '+v.color:''}</div>
+            <div class="vehicle-meta">${v.client}</div>
+          </div>
+          <span class="badge badge-${status==='green'?'green':status==='yellow'?'yellow':'red'}">${STAGES[v.stage].name}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <div class="vehicle-footer">
+          <span class="stage-label">${v.plate||'S/Placa'} · Fatura: ${v.invoice||'—'}</span>
+          <span class="stage-label">${days} dia(s) em prep.</span>
+        </div>
+        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+          ${v.accessories && v.accessories.length > 0 ? `<span style="font-size:11px;color:#6b7280">🛠️ ${v.accessories.filter(a=>a.installed).length}/${v.accessories.length} acessórios</span>` : '<span></span>'}
+          <span style="font-size:11px;background:#252840;padding:2px 8px;border-radius:10px;color:var(--text-light)">👤 ${STAGES[v.stage].resp}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== DETAIL =====
+function openDetail(id) {
+  currentVehicleId = id;
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === id);
+  if(!v) return;
+  document.getElementById('detailTitle').textContent = `${v.model} — ${v.client}`;
+  const status = getStatus(v);
+  document.getElementById('detailBadge').innerHTML = `<span class="badge badge-${status==='green'?'green':status==='yellow'?'yellow':'red'}">${STAGES[v.stage].name}</span>`;
+  showDetailTab('info', document.querySelector('.detail-tab'));
+  document.getElementById('vehicleDetail').classList.add('open');
+}
+function closeDetail() {
+  document.getElementById('vehicleDetail').classList.remove('open');
+  currentVehicleId = null;
+  renderAll();
+}
+function showDetailTab(tab, btn) {
+  currentDetailTab = tab;
+  ['info','checklist','accessories','history'].forEach(t => {
+    document.getElementById('detailTab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.detail-tab').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderDetailTab(tab);
+}
+function renderDetailTab(tab) {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v) return;
+  if(tab==='info') renderDetailInfo(v);
+  if(tab==='checklist') renderDetailChecklist(v);
+  if(tab==='accessories') renderDetailAccessories(v, data);
+  if(tab==='history') renderDetailHistory(v);
+}
+function renderDetailInfo(v) {
+  const el = document.getElementById('detailTabInfo');
+  const daysTotal = daysSince(v.invoiceDate);
+  el.innerHTML = `
+    <div class="card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div><div class="form-label">Modelo</div><div style="font-weight:700">${v.model}</div></div>
+        <div><div class="form-label">Cor</div><div>${v.color||'—'}</div></div>
+        <div><div class="form-label">Placa / Chassi</div><div style="font-weight:700">${v.plate||'—'}</div></div>
+        <div><div class="form-label">Nº Fatura</div><div>${v.invoice||'—'}</div></div>
+        <div><div class="form-label">Cliente</div><div style="font-weight:700">${v.client}</div></div>
+        <div><div class="form-label">Celular</div><div>${v.phone||'—'}</div></div>
+        <div><div class="form-label">Consultor</div><div>${v.seller||'—'}</div></div>
+        <div><div class="form-label">Data Fatura</div><div>${formatDate(v.invoiceDate)}</div></div>
+        ${v.deliveryDate?`<div><div class="form-label">Data Entrega</div><div style="font-weight:700;color:var(--green)">${formatDate(v.deliveryDate)}</div></div>`:''}
+      </div>
+      ${v.obs?`<div><div class="form-label">Observações</div><div style="font-size:13px;color:#374151">${v.obs}</div></div>`:''}
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">⏱️ Status — ${daysTotal} dia(s) em preparação</div>
+      <div class="timeline">
+        ${STAGES.map((s,i) => `
+          <div class="timeline-item">
+            <div class="timeline-dot ${i<v.stage?'done':i===v.stage?'current':''}"></div>
+            <div class="timeline-text">
+              <strong>${s.icon} ${s.name}</strong>
+              ${i<v.stage?' — <span style="color:var(--green)">✓ Concluído</span>':''}
+              ${i===v.stage?' — <span style="color:var(--primary);font-weight:700">Em andamento</span>':''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${v.stage < 6 ? `
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      ${v.stage < 5 ? `
+        <div class="form-group" id="delivDateGroup" style="margin-bottom:0">
+          <label class="form-label">Agendar Data de Entrega</label>
+          <div style="display:flex;gap:8px">
+            <input class="form-control" type="date" id="deliveryDateInput" value="${v.deliveryDate||''}" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="saveDeliveryDate()">Salvar</button>
+          </div>
+        </div>
+      ` : ''}
+      <button class="btn btn-success btn-block" onclick="advanceStage()">
+        ✓ Concluir: ${STAGES[v.stage].name} → ${v.stage<6?STAGES[v.stage+1].name:'Marcar como Concluído'}
+      </button>
+      ${v.stage > 0 ? `<button class="btn btn-secondary btn-block" onclick="revertStage()">‹ Voltar: ${STAGES[v.stage-1].name}</button>` : ''}
+    </div>` : `<div class="card" style="background:var(--green-bg);text-align:center;padding:20px"><div style="font-size:28px">🎉</div><div style="font-weight:700;color:var(--green);margin-top:8px">Serviço Concluído!</div><div style="font-size:13px;color:#166534;margin-top:4px">Entregue em ${formatDate(v.deliveryDate)}</div></div>`}
+  `;
+}
+function saveDeliveryDate() {
+  const d = document.getElementById('deliveryDateInput')?.value;
+  if(!d) return;
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v) return;
+  v.deliveryDate = d;
+  setStorage(data);
+  toast('Data de entrega salva!');
+}
+function advanceStage() {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v || v.stage >= 7) return;
+  const tpl = CHECKLIST_TEMPLATES.find(t => t.stage === v.stage);
+  if(tpl) {
+    const checklist = v.checklists && v.checklists[v.stage];
+    const done = checklist ? checklist.filter(Boolean).length : 0;
+    if(done < tpl.items.length * 0.5) {
+      if(!confirm(`Apenas ${done} de ${tpl.items.length} itens do checklist foram marcados.\nDeseja avançar mesmo assim?`)) return;
+    }
+  }
+  v.stage++;
+  v.history = v.history || [];
+  v.history.push({ ts: new Date().toISOString(), action: `Avançou para: ${STAGES[v.stage].name}`, user: currentUserName || currentProfile });
+  setStorage(data);
+  openDetail(currentVehicleId);
+  toast(`Avançado para: ${STAGES[v.stage].name}`);
+}
+function revertStage() {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v || v.stage <= 0) return;
+  if(!confirm(`Retornar para ${STAGES[v.stage-1].name}?`)) return;
+  v.stage--;
+  setStorage(data);
+  openDetail(currentVehicleId);
+  toast('Etapa revertida');
+}
+function renderDetailChecklist(v) {
+  const el = document.getElementById('detailTabChecklist');
+  const tpl = CHECKLIST_TEMPLATES.find(t => t.stage === v.stage);
+  if(!tpl) { el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Checklist concluído para etapas anteriores</div></div>'; return; }
+  const checks = (v.checklists && v.checklists[v.stage]) || tpl.items.map(()=>false);
+  const done = checks.filter(Boolean).length;
+  el.innerHTML = `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:700">${STAGES[v.stage].icon} ${STAGES[v.stage].name}</div>
+        <span class="badge badge-${done===tpl.items.length?'green':'blue'}">${done}/${tpl.items.length}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(done/tpl.items.length*100)}%;background:${done===tpl.items.length?'var(--green)':'var(--primary)'}"></div></div>
+    </div>
+    <div class="checklist-stage">
+      ${tpl.items.map((item, idx) => `
+        <div class="checklist-item" onclick="toggleCheck(${idx})">
+          <div class="check-circle ${checks[idx]?'checked':''}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="check-text ${checks[idx]?'checked':''}">${item}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function toggleCheck(idx) {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v) return;
+  const tpl = CHECKLIST_TEMPLATES.find(t => t.stage === v.stage);
+  if(!tpl) return;
+  if(!v.checklists) v.checklists = {};
+  if(!v.checklists[v.stage]) v.checklists[v.stage] = tpl.items.map(()=>false);
+  v.checklists[v.stage][idx] = !v.checklists[v.stage][idx];
+  setStorage(data);
+  renderDetailChecklist(v);
+}
+function renderDetailAccessories(v, data) {
+  const el = document.getElementById('detailTabAccessories');
+  if(!v.accessories || v.accessories.length === 0) {
+    el.innerHTML = `
+      <div class="empty"><div class="empty-icon">🛠️</div><div class="empty-text">Nenhum acessório cadastrado</div></div>
+      <button class="btn btn-primary btn-block" style="margin-top:12px" onclick="openAddAccModal()">+ Adicionar Acessório</button>
+    `;
+    return;
+  }
+  const done = v.accessories.filter(a=>a.installed).length;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="badge badge-${done===v.accessories.length?'green':'blue'}">${done}/${v.accessories.length} instalados</span>
+      <button class="btn btn-secondary btn-sm" onclick="openAddAccModal()">+ Adicionar</button>
+    </div>
+    ${v.accessories.map((acc, idx) => `
+      <div class="acc-item">
+        <div class="acc-check ${acc.installed?'checked':''}" onclick="toggleAcc(${idx})">
+          ${acc.installed?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
+        </div>
+        <div class="acc-info">
+          <div class="acc-name">${acc.name}</div>
+          ${acc.code?`<div class="acc-detail">Código: ${acc.code}</div>`:''}
+          ${acc.installedAt?`<div class="acc-detail">Instalado em: ${formatDate(acc.installedAt)}</div>`:''}
+        </div>
+        ${acc.installed?'<span style="font-size:18px">✅</span>':'<span style="font-size:18px;color:#d1d5db">⬜</span>'}
+      </div>
+    `).join('')}
+  `;
+}
+function toggleAcc(idx) {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v || !v.accessories) return;
+  v.accessories[idx].installed = !v.accessories[idx].installed;
+  if(v.accessories[idx].installed) v.accessories[idx].installedAt = new Date().toISOString().split('T')[0];
+  setStorage(data);
+  renderDetailTab('accessories');
+}
+function renderDetailHistory(v) {
+  const el = document.getElementById('detailTabHistory');
+  const hist = v.history || [];
+  if(hist.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sem histórico ainda</div></div>'; return; }
+  el.innerHTML = `
+    <div class="card">
+      <div class="timeline">
+        ${[...hist].reverse().map(h => `
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-text">
+              <strong>${h.action}</strong><br>
+              <span style="font-size:11px">${formatDateTime(h.ts)} · ${h.user}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ===== CHECKLISTS PAGE =====
+function renderChecklistVehicles() {
+  const data = getStorage();
+  const active = data.vehicles.filter(v => v.stage < 7);
+  const el = document.getElementById('checklistVehicles');
+  if(active.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Nenhum veículo em preparação</div></div>'; return; }
+  el.innerHTML = active.map(v => {
+    const tpl = CHECKLIST_TEMPLATES.find(t => t.stage === v.stage);
+    const checks = (v.checklists && v.checklists[v.stage]) || [];
+    const done = checks.filter(Boolean).length;
+    const total = tpl ? tpl.items.length : 0;
+    const pct = total > 0 ? Math.round(done/total*100) : 0;
+    const status = getStatus(v);
+    return `
+      <div class="vehicle-card status-${status}" onclick="openDetailChecklist(${v.id})" style="margin-bottom:10px">
+        <div class="vehicle-info">
+          <div>
+            <div class="vehicle-model">${v.model} — ${v.client}</div>
+            <div class="vehicle-meta">${STAGES[v.stage].icon} ${STAGES[v.stage].name}</div>
+          </div>
+          <span class="badge badge-${pct===100?'green':'blue'}">${done}/${total}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'var(--primary)'}"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+function openDetailChecklist(id) {
+  openDetail(id);
+  setTimeout(()=>{ showDetailTab('checklist', document.querySelectorAll('.detail-tab')[1]); }, 100);
+}
+
+// ===== DEFECTS =====
+function renderDefects() {
+  const data = getStorage();
+  const el = document.getElementById('defectsList');
+  if(data.defects.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Nenhum defeito registrado</div></div>'; return; }
+  el.innerHTML = [...data.defects].reverse().map(d => `
+    <div class="defect-card ${d.resolved?'resolved':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:700;font-size:14px">${d.vehicleName}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px">${d.type} · ${d.location}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="badge badge-${d.severity==='alta'?'red':d.severity==='media'?'yellow':'green'}">${d.severity==='alta'?'🔴 Alta':d.severity==='media'?'🟡 Média':'🟢 Baixa'}</span>
+          ${!d.resolved?`<button class="btn btn-success btn-sm" onclick="resolveDefect(${d.id})">Resolver</button>`:`<span class="badge badge-green">Resolvido</span>`}
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:13px">${d.desc}</div>
+      <div style="margin-top:6px;font-size:11px;color:#9ca3af">${d.inspector} · ${formatDate(d.date)}</div>
+    </div>
+  `).join('');
+}
+function openDefectModal() {
+  const data = getStorage();
+  const sel = document.getElementById('def_vehicle');
+  sel.innerHTML = data.vehicles.filter(v=>v.stage<6).map(v=>`<option value="${v.id}">${v.model} — ${v.client}</option>`).join('');
+  openModal('defectModal');
+}
+function saveDefect() {
+  const data = getStorage();
+  const vid = parseInt(document.getElementById('def_vehicle').value);
+  const v = data.vehicles.find(v=>v.id===vid);
+  const defect = {
+    id: Date.now(),
+    vehicleId: vid,
+    vehicleName: v ? `${v.model} — ${v.client}` : '—',
+    type: document.getElementById('def_type').value,
+    location: document.getElementById('def_location').value,
+    desc: document.getElementById('def_desc').value,
+    inspector: document.getElementById('def_inspector').value,
+    severity: document.getElementById('def_severity').value,
+    date: new Date().toISOString().split('T')[0],
+    resolved: false
+  };
+  data.defects.push(defect);
+  setStorage(data);
+  closeModal('defectModal');
+  renderDefects();
+  toast('Defeito registrado!');
+}
+function resolveDefect(id) {
+  const data = getStorage();
+  const d = data.defects.find(d=>d.id===id);
+  if(d) { d.resolved = true; setStorage(data); renderDefects(); toast('Defeito marcado como resolvido'); }
+}
+
+// ===== NEW VEHICLE =====
+let pendingAccList = [];
+function openNewVehicleModal() {
+  pendingAccList = [];
+  document.getElementById('accList').innerHTML = '';
+  ['nv_model','nv_color','nv_plate','nv_invoice','nv_client','nv_phone','nv_seller','nv_obs','accInput'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = el.tagName==='SELECT'?'':el.type==='date'?new Date().toISOString().split('T')[0]:'';
+  });
+  openModal('newVehicleModal');
+}
+function addAccessory() {
+  const input = document.getElementById('accInput');
+  const val = input.value.trim();
+  if(!val) return;
+  pendingAccList.push({ name: val, code: '', installed: false, installedAt: null });
+  input.value = '';
+  document.getElementById('accList').innerHTML = pendingAccList.map((a,i) =>
+    `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="flex:1;font-size:13px;background:#f3f4f6;padding:4px 8px;border-radius:6px">${a.name}</span>
+      <button onclick="removeAcc(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
+    </div>`
+  ).join('');
+}
+function removeAcc(i) { pendingAccList.splice(i,1); document.getElementById('accList').innerHTML = pendingAccList.map((a,j)=>
+  `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="flex:1;font-size:13px;background:#f3f4f6;padding:4px 8px;border-radius:6px">${a.name}</span><button onclick="removeAcc(${j})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button></div>`).join(''); }
+function saveNewVehicle() {
+  const model = document.getElementById('nv_model').value;
+  const client = document.getElementById('nv_client').value.trim();
+  if(!model) { toast('Selecione o modelo'); return; }
+  if(!client) { toast('Informe o nome do cliente'); return; }
+  const data = getStorage();
+  const v = {
+    id: data.nextId++,
+    model, client,
+    color: document.getElementById('nv_color').value.trim(),
+    plate: document.getElementById('nv_plate').value.trim().toUpperCase(),
+    invoice: document.getElementById('nv_invoice').value.trim(),
+    phone: document.getElementById('nv_phone').value.trim(),
+    invoiceDate: document.getElementById('nv_invoiceDate').value,
+    seller: document.getElementById('nv_seller').value.trim(),
+    obs: document.getElementById('nv_obs').value.trim(),
+    stage: 0,
+    checklists: {},
+    accessories: [...pendingAccList],
+    deliveryDate: null,
+    history: [{ ts: new Date().toISOString(), action: 'Veículo cadastrado — Área Adm', user: currentUserName || currentProfile }]
+  };
+  data.vehicles.push(v);
+  setStorage(data);
+  closeModal('newVehicleModal');
+  renderAll();
+  toast(`${v.model} cadastrado com sucesso!`);
+}
+
+// ===== HELPERS =====
+function getStatus(v) {
+  if(v.stage >= 7) return 'blue';
+  const expectedDays = STAGES.slice(0, v.stage + 1).reduce((s, st) => s + st.days, 0);
+  const actual = daysSince(v.invoiceDate);
+  if(actual <= expectedDays) return 'green';
+  if(actual <= expectedDays + 2) return 'yellow';
+  return 'red';
+}
+function daysSince(dateStr) {
+  if(!dateStr) return 0;
+  const diff = new Date() - new Date(dateStr);
+  return Math.max(0, Math.floor(diff / 86400000));
+}
+function daysInStage(v) {
+  if(!v.history) return 0;
+  const stageEntries = v.history.filter(h => h.action.includes(STAGES[v.stage].name));
+  if(stageEntries.length === 0) return 0;
+  const last = new Date(stageEntries[stageEntries.length-1].ts);
+  return Math.floor((new Date() - last) / 86400000);
+}
+function formatDate(d) {
+  if(!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function formatDateTime(ts) {
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target === el) el.classList.remove('open'); });
+});
+
+// ===== INTAKE MODULE =====
+const AUTHORIZED_SENDERS = ['Adriana', 'Adriano', 'Junior Leão', 'Adriano Junior'];
+let intakeSource = null;
+let intakeSender = null;
+let parsedAccs = [];
+
+function openIntakePreFilled() {
+  openIntakeModal();
+  // Auto-select WhatsApp + Adriano after modal opens
+  setTimeout(() => {
+    selectSource('whatsapp');
+    selectSender('Adriano');
+    document.getElementById('intakeText').focus();
+  }, 100);
+}
+
+function openIntakeModal() {
+  intakeSource = null; intakeSender = null; parsedAccs = [];
+  document.getElementById('intakeStep1').style.display = 'block';
+  document.getElementById('intakeStep2').style.display = 'none';
+  document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('authBlock').style.display = 'none';
+  document.getElementById('textBlock').style.display = 'none';
+  document.getElementById('fileBlock').style.display = 'none';
+  document.getElementById('filePreview').innerHTML = '';
+  document.getElementById('intakeText').value = '';
+  document.getElementById('intakeTextFromFile').value = '';
+  document.getElementById('btnProcess').disabled = true;
+  document.getElementById('unauthorizedWarn').style.display = 'none';
+  openModal('intakeModal');
+}
+
+function selectSource(src) {
+  intakeSource = src;
+  document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('src_'+src).classList.add('selected');
+  document.getElementById('authBlock').style.display = src === 'whatsapp' ? 'block' : 'none';
+  document.getElementById('textBlock').style.display = ['email','whatsapp'].includes(src) ? 'block' : 'none';
+  document.getElementById('fileBlock').style.display = ['pdf','image'].includes(src) ? 'block' : 'none';
+  if(src !== 'whatsapp') { intakeSender = null; document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected')); }
+  checkIntakeReady();
+}
+
+function selectSender(name) {
+  intakeSender = name;
+  document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected'));
+  const idMap = { 'Adriana':'auth_adriana','Adriano':'auth_adriano','Junior Leão':'auth_junior','Adriano Junior':'auth_adrianojr' };
+  document.getElementById(idMap[name]).classList.add('selected');
+  document.getElementById('unauthorizedWarn').style.display = 'none';
+  checkIntakeReady();
+}
+
+function checkIntakeReady() {
+  const hasSource = !!intakeSource;
+  const hasSender = intakeSource !== 'whatsapp' || !!intakeSender;
+  document.getElementById('btnProcess').disabled = !(hasSource && hasSender);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if(file) displayFilePreview(file);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if(file) displayFilePreview(file);
+}
+function displayFilePreview(file) {
+  const prev = document.getElementById('filePreview');
+  if(file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      prev.innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:8px;border:1px solid var(--border)" alt="preview">`;
+      checkIntakeReady();
+    };
+    reader.readAsDataURL(file);
+  } else if(file.type === 'application/pdf') {
+    const url = URL.createObjectURL(file);
+    prev.innerHTML = `<iframe src="${url}" style="width:100%;height:280px;border:1px solid var(--border);border-radius:8px"></iframe>`;
+    checkIntakeReady();
+  }
+}
+
+// ===== PARSER ENGINE =====
+const MODELS = ['onix plus','onix','tracker','equinox','s10','montana','trailblazer','blazer','spin','cobalt','cruze','camaro'];
+const COLORS = {
+  'branco summit':'Branco Summit','branco':'Branco','preto':'Preto','vermelho':'Vermelho',
+  'azul':'Azul','prata':'Prata','cinza grafite':'Cinza Grafite','cinza':'Cinza',
+  'grafite':'Grafite Metalico','bege':'Bege','dourado':'Dourado',
+  'verde':'Verde','laranja':'Laranja','midnight':'Midnight','premier':'(Premier)',
+  'summit':'Summit','bronze':'Bronze','marrom':'Marrom'
+};
+const ACC_KEYWORDS = [
+  'película','pelicula','tapete','sensor','câmera','camera','engate','protetor','estribo',
+  'calota','roda','som','multimídia','multimidia','alarme','rastreador','rastreamento',
+  'banco','couro','vidro elétrico','farol','led','teto solar','rack','bagageiro',
+  'capa','cobre rodas','para-brisa','parabrisa','step','soleira',
+  'proteção lateral','friso','spoiler','aplique','reboque','guincho',
+  'retrovisor','espelho','emblema','grade','difusor','kit','par de'
+];
+
+function parseOrderText(text) {
+  const t = text.toLowerCase();
+  const result = { model:'', color:'', client:'', invoice:'', phone:'', seller:'', date:'', accessories:[], confidence:0 };
+  let hits = 0;
+
+  // Model
+  for(const m of MODELS) {
+    if(t.includes(m)) {
+      result.model = m.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+      hits += 2; break;
+    }
+  }
+
+  // Color
+  for(const [key, val] of Object.entries(COLORS)) {
+    if(t.includes(key)) { result.color = val; hits++; break; }
+  }
+
+  // Invoice number - look for patterns like FT-1234, fatura 1234, pedido 1234, NF 1234
+  const invMatch = text.match(/(?:fatura|fat|FT|pedido|NF|nota|order|ord)[.:\s#-]*([A-Z0-9\-]{4,12})/i)
+    || text.match(/\b(\d{4,8})\b/);
+  if(invMatch) { result.invoice = invMatch[1]; hits++; }
+
+  // Phone
+  const phoneMatch = text.match(/\(?\d{2}\)?[\s.-]?9?\s?\d{4}[\s.-]?\d{4}/);
+  if(phoneMatch) { result.phone = phoneMatch[0].trim(); hits++; }
+
+  // Date
+  const dateMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(dateMatch) {
+    const [,d,m,y] = dateMatch;
+    const yr = y.length===2?'20'+y:y;
+    result.date = `${yr}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    hits++;
+  }
+
+  // Client name — look for "cliente:", "para:", "nome:" patterns or a proper name (2+ capitalized words)
+  const clientMatch = text.match(/(?:cliente|para|nome|sr\.|sra\.)[:\s]+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)+)/i)
+    || text.match(/([A-ZÀ-Ú][a-zà-ú]{2,}(?:\s+[A-ZÀ-Ú][a-zà-ú]{2,}){1,3})/);
+  if(clientMatch) { result.client = clientMatch[1].trim(); hits++; }
+
+  // Seller
+  const sellerMatch = text.match(/(?:vendedor|consultor|consultor de vendas|atendente)[:\s]+([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)?)/i);
+  if(sellerMatch) { result.seller = sellerMatch[1].trim(); hits++; }
+
+  // Accessories — look for keywords or list patterns
+  const accSet = new Set();
+  for(const kw of ACC_KEYWORDS) {
+    const re = new RegExp('((?:[a-záéíóúãõâêôçüàè]{2,}\\s+){0,3}' + kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?:\\s+[a-záéíóúãõâêôçüàè0-9]{1,}){0,3})', 'i');
+    const m2 = t.match(re);
+    if(m2) { accSet.add(m2[1].trim().replace(/^,\s*/,'').replace(/,\s*$/,'')); }
+  }
+  // Also extract numbered/bulleted list items
+  const listItems = text.match(/(?:^\s*[-•*\d]+[.):\s]+)(.+)/gm);
+  if(listItems) listItems.forEach(li => { const clean = li.replace(/^\s*[-•*\d]+[.):\s]+/,'').trim(); if(clean.length>3) accSet.add(clean); });
+  result.accessories = [...accSet].slice(0,12).map(a=>({ name: a.charAt(0).toUpperCase()+a.slice(1), installed:false, installedAt:null }));
+  if(result.accessories.length) hits += result.accessories.length;
+
+  result.confidence = Math.min(100, Math.round((hits / 10) * 100));
+  return result;
+}
+
+function processIntake() {
+  if(intakeSource === 'whatsapp' && !intakeSender) {
+    document.getElementById('unauthorizedWarn').style.display = 'block'; return;
+  }
+  const rawText = ['email','whatsapp'].includes(intakeSource)
+    ? document.getElementById('intakeText').value
+    : document.getElementById('intakeTextFromFile').value;
+  if(!rawText.trim()) { toast('Cole ou transcreva o texto do pedido primeiro'); return; }
+  const parsed = parseOrderText(rawText);
+  parsedAccs = [...parsed.accessories];
+
+  // Fill Step 2 form
+  const modelEl = document.getElementById('p_model');
+  for(let i=0;i<modelEl.options.length;i++) {
+    if(modelEl.options[i].text.toLowerCase()===parsed.model.toLowerCase()) { modelEl.selectedIndex=i; break; }
+  }
+  document.getElementById('p_color').value = parsed.color;
+  document.getElementById('p_client').value = parsed.client;
+  document.getElementById('p_invoice').value = parsed.invoice;
+  document.getElementById('p_phone').value = parsed.phone;
+  document.getElementById('p_seller').value = parsed.seller;
+  document.getElementById('p_date').value = parsed.date || new Date().toISOString().split('T')[0];
+  document.getElementById('p_plate').value = '';
+  renderParsedAccs();
+
+  // Confidence
+  const conf = parsed.confidence;
+  document.getElementById('confBar').style.width = conf+'%';
+  document.getElementById('confBar').style.background = conf>70?'var(--green)':conf>40?'var(--yellow)':'var(--red)';
+  document.getElementById('confLabel').textContent = `Confiança: ${conf}% — ${conf>70?'Alta — verifique e confirme':'Média/Baixa — preencha os campos faltantes'}`;
+
+  // Parsed preview
+  const srcLabels = {email:'📧 E-mail', whatsapp:`💬 WhatsApp (${intakeSender})`, pdf:'📄 PDF', image:'🖼️ Imagem'};
+  document.getElementById('parsedPreview').innerHTML = `
+    <div class="parsed-field"><span class="parsed-key">Origem</span><span class="parsed-val">${srcLabels[intakeSource]}</span></div>
+    ${parsed.model?`<div class="parsed-field"><span class="parsed-key">Modelo</span><span class="parsed-val" style="font-weight:700">${parsed.model}</span></div>`:''}
+    ${parsed.color?`<div class="parsed-field"><span class="parsed-key">Cor</span><span class="parsed-val">${parsed.color}</span></div>`:''}
+    ${parsed.client?`<div class="parsed-field"><span class="parsed-key">Cliente</span><span class="parsed-val" style="font-weight:700">${parsed.client}</span></div>`:''}
+    ${parsed.invoice?`<div class="parsed-field"><span class="parsed-key">Fatura</span><span class="parsed-val">${parsed.invoice}</span></div>`:''}
+    ${parsed.accessories.length?`<div class="parsed-field"><span class="parsed-key">Acessórios</span><span class="parsed-val">${parsed.accessories.length} detectados</span></div>`:''}
+  `;
+
+  document.getElementById('intakeStep1').style.display = 'none';
+  document.getElementById('intakeStep2').style.display = 'block';
+}
+
+function intakeBack() {
+  document.getElementById('intakeStep1').style.display = 'block';
+  document.getElementById('intakeStep2').style.display = 'none';
+}
+
+function openAddAccModal() {
+  const name = prompt('Nome do acessório:');
+  if (!name || !name.trim()) return;
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if (!v) return;
+  if (!v.accessories) v.accessories = [];
+  v.accessories.push({ name: name.trim(), installed: false, installedAt: null });
+  setStorage(data);
+  renderDetailTab('accessories');
+  toast('Acessório adicionado!');
+}
+
+function renderParsedAccs() {
+  document.getElementById('p_accList').innerHTML = parsedAccs.map((a,i)=>
+    `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="flex:1;font-size:13px;background:#f3f4f6;padding:4px 8px;border-radius:6px">${a.name}</span>
+      <button onclick="removeParsedAcc(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
+    </div>`
+  ).join('');
+}
+function addParsedAcc() {
+  const v = document.getElementById('p_accInput').value.trim();
+  if(!v) return;
+  parsedAccs.push({name:v,installed:false,installedAt:null});
+  document.getElementById('p_accInput').value = '';
+  renderParsedAccs();
+}
+function removeParsedAcc(i) { parsedAccs.splice(i,1); renderParsedAccs(); }
+
+function confirmIntake() {
+  const model = document.getElementById('p_model').value;
+  const client = document.getElementById('p_client').value.trim();
+  if(!model) { toast('Selecione o modelo'); return; }
+  if(!client) { toast('Informe o nome do cliente'); return; }
+  const data = getStorage();
+  const v = {
+    id: data.nextId++,
+    model, client,
+    color: document.getElementById('p_color').value.trim(),
+    plate: document.getElementById('p_plate').value.trim().toUpperCase(),
+    invoice: document.getElementById('p_invoice').value.trim(),
+    phone: document.getElementById('p_phone').value.trim(),
+    invoiceDate: document.getElementById('p_date').value || new Date().toISOString().split('T')[0],
+    seller: document.getElementById('p_seller').value.trim(),
+    obs: document.getElementById('p_obs').value.trim(),
+    stage: 0,
+    checklists: {},
+    accessories: [...parsedAccs],
+    deliveryDate: null,
+    intake: { source: intakeSource, sender: intakeSender || null, ts: new Date().toISOString() },
+    history: [{ ts: new Date().toISOString(), action: `Cadastrado via ${intakeSource.toUpperCase()}${intakeSender?' ('+intakeSender+')':''}`, user: currentUserName || currentProfile }]
+  };
+  data.vehicles.push(v);
+
+  // Save intake record
+  data.intakes = data.intakes || [];
+  data.intakes.push({ id: Date.now(), vehicleId: v.id, source: intakeSource, sender: intakeSender, vehicleName: `${model} — ${client}`, ts: new Date().toISOString(), status:'processed' });
+  setStorage(data);
+  closeModal('intakeModal');
+  renderAll();
+  toast(`✅ ${model} de ${client} cadastrado!`);
+}
+
+// ===== RENDER INTAKE LIST =====
+function renderIntakeList() {
+  const data = getStorage();
+  const intakes = data.intakes || [];
+  const el = document.getElementById('intakeList');
+  if(!el) return;
+  if(intakes.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📥</div><div class="empty-text">Nenhuma entrada registrada ainda.<br>Toque em "+ Nova Entrada" para registrar um pedido.</div></div>`;
+    return;
+  }
+  const srcIcons = {email:'📧',whatsapp:'💬',pdf:'📄',image:'🖼️'};
+  el.innerHTML = [...intakes].reverse().map(it => {
+    const v = data.vehicles.find(v=>v.id===it.vehicleId);
+    const stage = v ? STAGES[v.stage].name : 'Entregue';
+    return `
+      <div class="intake-card processed" onclick="${v?'openDetail('+it.vehicleId+')':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:700;font-size:14px">${srcIcons[it.source]||'📥'} ${it.vehicleName}</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:2px">
+              ${it.source.toUpperCase()}${it.sender?' · '+it.sender:''} · ${formatDateTime(it.ts)}
+            </div>
+          </div>
+          <span class="badge badge-blue">${stage}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== DEMO DATA =====
+function loadDemo() {
+  const data = getStorage();
+  if(data.vehicles.length > 0) return;
+  const today = new Date();
+  const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; };
+  const demo = [
+    { model:'Tracker', client:'Ana Lima', color:'Branco Summit', plate:'', invoice:'FT-8821', invoiceDate: daysAgo(2), seller:'Carlos', stage:0, accessories:[{name:'Película 3M',installed:false},{name:'Tapetes Premium',installed:false}] },
+    { model:'Onix Plus', client:'Ricardo Souza', color:'Vermelho', plate:'', invoice:'FT-8830', invoiceDate: daysAgo(4), seller:'Fernanda', stage:1, accessories:[{name:'Sensor de Estacionamento',installed:true},{name:'Película Fumê',installed:false}] },
+    { model:'S10 HC', client:'Construtora Malia', color:'Prata', plate:'', invoice:'FT-8840', invoiceDate: daysAgo(5), seller:'Carlos', stage:2, accessories:[{name:'Protetor de Caçamba',installed:true},{name:'Estribo Lateral',installed:true}] },
+    { model:'Equinox', client:'Beatriz Farias', color:'Cinza Grafite', plate:'', invoice:'FT-8850', invoiceDate: daysAgo(6), seller:'Fernanda', stage:3, deliveryDate: new Date(today.getTime()+86400000*2).toISOString().split('T')[0], accessories:[{name:'Tapetes',installed:true}] },
+    { model:'Montana', client:'Paulo Henrique', color:'Azul', plate:'', invoice:'FT-8812', invoiceDate: daysAgo(7), seller:'João', stage:4, deliveryDate: new Date(today.getTime()+86400000*1).toISOString().split('T')[0], accessories:[{name:'Tapetes',installed:true}] },
+    { model:'Onix', client:'Maria Santos', color:'Preto', plate:'PXE-9900', invoice:'FT-8800', invoiceDate: daysAgo(9), seller:'Carlos', stage:5, deliveryDate: today, accessories:[] },
+    { model:'Blazer', client:'Roberto Lima', color:'Branco', plate:'PXF-1122', invoice:'FT-8790', invoiceDate: daysAgo(11), seller:'João', stage:6, deliveryDate: daysAgo(0), accessories:[] },
+    { model:'Tracker', client:'Juliana Costa', color:'Azul', plate:'PXG-3344', invoice:'FT-8780', invoiceDate: daysAgo(12), seller:'Carlos', stage:7, deliveryDate: daysAgo(1), accessories:[{name:'Película',installed:true}] },
+  ];
+  let nextId = 1;
+  demo.forEach(v => {
+    data.vehicles.push({ id: nextId++, ...v,
+      checklists:{}, history:[{ts:new Date().toISOString(),action:'Veículo cadastrado (demo)',user:'sistema'}],
+      accessories: (v.accessories||[]).map(a=>({...a,installedAt:a.installed?daysAgo(1):null}))
+    });
+  });
+  data.defects.push({ id:1, vehicleId:1, vehicleName:'Tracker — Ana Lima', type:'Riscos / Arranhões', location:'Lateral Direita', desc:'Arranhão leve na porta traseira direita, provavelmente do transporte.', inspector:'João Preparador', severity:'media', date: daysAgo(2), resolved:false });
+  data.nextId = nextId;
+  setStorage(data);
+}
+loadDemo();
+</script>
+</body>
+</html>
