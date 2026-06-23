@@ -127,8 +127,12 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
 2. **Importar a frota / programação** — ✅ *pronto:* importador em lote de
    PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi),
    por **upload de PDF** (extração automática) ou colando o texto.
-3. **Persistir fotos** — chassi, avarias e placa hoje ficam no dispositivo;
-   passar para o Firebase Storage.
+3. **Fotos da vistoria (pátio)** — ✅ *pronto:* aba **📷 Fotos** no detalhe do
+   veículo captura chassi/avaria/placa pela **câmera** (comprime no celular).
+   As imagens ficam numa coleção separada do Firestore (`braga_fotos`, 1 doc
+   por foto) + cache local — **fora** do documento principal (limite 1 MB);
+   o veículo guarda só os metadados. Requer a regra `braga_fotos` (ver
+   `docs/SETUP_NUVEM.md`). Evolução possível: migrar p/ Firebase Storage.
 4. **Sync por veículo** — trocar o last-write-wins por um documento por
    veículo (edição simultânea sem risco de sobrescrita).
 5. **Treinar a equipe** — cada pessoa com seu perfil.

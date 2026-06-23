@@ -217,9 +217,36 @@ o app atualiza sozinho e marca com **🔔 Alterado** para a equipe perceber. A t
 **Trocar de perfil?**
 Toque no seu nome (canto superior direito) → confirme.
 
-**As fotos (chassi/placa/avaria)?**
-Hoje o checklist tem os **lembretes** de foto obrigatória para você marcar.
-O envio das fotos dentro do app está planejado como próxima evolução.
+**Como registro as fotos (chassi/placa/avaria)?**
+Abra o veículo → aba **📷 Fotos** → toque em **Chassi**, **Avaria**, **Placa**
+ou **Outra**: abre a **câmera do celular**, você tira a foto e ela fica salva
+no veículo. Veja o passo a passo na seção 11.
+
+---
+
+## 11. 📷 Registrar fotos da vistoria no pátio
+
+Para quem **busca o carro no pátio** e inicia o preparo (etapa 0). Use o
+**celular** para fotografar o chassi, avarias e a placa.
+
+1. Aba **Veículos** → toque no veículo (use a **busca** por chassi/cliente).
+2. Abra a aba **📷 Fotos**.
+3. Toque no tipo da foto: **🔢 Chassi**, **⚠️ Avaria**, **🔖 Placa** ou
+   **📷 Outra** → abre a **câmera do celular** → tire a foto.
+4. A foto entra na grade do veículo (com tipo, data e quem registrou) e fica
+   registrada no **histórico**. Toque numa foto para **ver ampliada**; o **✕**
+   remove.
+
+**Boas práticas no pátio:**
+- Tire a **foto do chassi** legível (aproxime a câmera da plaqueta/VIN).
+- Se houver **avaria**, registre **uma foto por avaria** antes de iniciar o preparo.
+- A placa normalmente é fotografada mais à frente (etapa Qualidade + Placa).
+
+> As fotos são **comprimidas** no próprio celular (ficam leves) e, com a nuvem
+> ligada, **sincronizam** para a equipe (precisa da regra `braga_fotos` —
+> ver `SETUP_NUVEM.md`). Sem internet, ficam salvas no aparelho e sobem depois.
+> Dica: a aba **📷 Fotos** está em **todos os veículos** — qualquer perfil pode
+> registrar; quem faz a vistoria no pátio é o foco aqui.
 
 ---
 

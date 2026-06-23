@@ -39,9 +39,16 @@ Tempo estimado: ~15 minutos.
        match /braga/data {
          allow read, write: if request.auth != null;
        }
+       match /braga_fotos/{id} {
+         allow read, write: if request.auth != null;
+       }
      }
    }
    ```
+
+   > A segunda regra (`braga_fotos`) libera as **fotos da vistoria** (guardadas
+   > em documentos separados). Sem ela, as fotos ficam **só no aparelho** que
+   > tirou; com ela, sincronizam para toda a equipe.
 
    Isso permite ler/gravar **apenas** o documento do app, e **apenas** para
    quem está autenticado (o login anônimo do próprio app).

@@ -41,6 +41,7 @@
     _applyingRemote: false,
     _seeded: false,
     _ref: null,
+    _db: null,
     _pushTimer: null,
     _statusCb: null,
     _clientId: (function () {
@@ -64,7 +65,8 @@
         try {
           if (!firebase.apps.length) firebase.initializeApp(cfg);
           var start = function () {
-            self._ref = firebase.firestore().collection(COL).doc(DOC);
+            self._db = firebase.firestore();
+            self._ref = self._db.collection(COL).doc(DOC);
             self._ref.onSnapshot(function (snap) {
               self._setStatus('online');
               if (!snap.exists) {
@@ -108,6 +110,24 @@
             .catch(function (e) { console.warn('[CloudSync] push falhou:', e); self._setStatus('erro'); });
         } catch (e) { console.warn('[CloudSync] push falhou:', e); }
       }, 600);
+    },
+
+    /* ----- Fotos (coleção separada 'braga_fotos', 1 doc por foto) -----
+       Mantém as imagens FORA do documento principal (que tem limite de 1 MB). */
+    savePhoto: function (id, obj) {
+      if (!this.enabled || !this._db) return;
+      try { this._db.collection('braga_fotos').doc(id).set(obj); }
+      catch (e) { console.warn('[CloudSync] savePhoto:', e); }
+    },
+    loadPhoto: function (id) {
+      if (!this.enabled || !this._db) return Promise.resolve(null);
+      return this._db.collection('braga_fotos').doc(id).get()
+        .then(function (s) { return (s.exists && s.data()) ? (s.data().d || null) : null; })
+        .catch(function () { return null; });
+    },
+    deletePhoto: function (id) {
+      if (!this.enabled || !this._db) return;
+      try { this._db.collection('braga_fotos').doc(id).delete(); } catch (e) {}
     }
   };
 

@@ -417,6 +417,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .bulk-main { flex:1; min-width:0; }
 .bulk-title { font-weight:700; font-size:14px; }
 .bulk-sub { font-size:12px; color: var(--text-light); margin-top:2px; word-break:break-word; }
+.foto-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:10px; margin-top:12px; }
+.foto-card { position:relative; }
+.foto-thumb { aspect-ratio:1; background:#1a1d2e center/cover no-repeat; border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-light); cursor:pointer; }
+.foto-meta { font-size:10px; color:var(--text-light); margin-top:4px; line-height:1.3; }
+.foto-del { position:absolute; top:5px; right:5px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; line-height:1; }
 .parsed-field { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
 .parsed-field:last-child { border-bottom: none; }
 .parsed-key { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; min-width: 90px; padding-top: 2px; }
@@ -742,11 +747,13 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   <div class="detail-body">
     <div class="detail-tabs">
       <button class="detail-tab active" onclick="showDetailTab('info',this)">Geral</button>
+      <button class="detail-tab" onclick="showDetailTab('fotos',this)">📷 Fotos</button>
       <button class="detail-tab" onclick="showDetailTab('checklist',this)">Checklist</button>
       <button class="detail-tab" onclick="showDetailTab('accessories',this)">Acessórios</button>
       <button class="detail-tab" onclick="showDetailTab('history',this)">Histórico</button>
     </div>
     <div id="detailTabInfo"></div>
+    <div id="detailTabFotos" style="display:none"></div>
     <div id="detailTabChecklist" style="display:none"></div>
     <div id="detailTabAccessories" style="display:none"></div>
     <div id="detailTabHistory" style="display:none"></div>
@@ -960,6 +967,12 @@ const firebaseConfig = {
       <button class="btn btn-primary btn-block" onclick="saveCloudConfig()">Salvar e conectar</button>
     </div>
   </div>
+</div>
+
+<!-- CAPTURA DE FOTO (câmera traseira) + VISUALIZADOR -->
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+<div id="photoViewer" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;align-items:center;justify-content:center;padding:16px">
+  <img id="photoViewerImg" alt="foto" style="max-width:100%;max-height:100%;border-radius:8px">
 </div>
 
 <!-- TOAST -->
@@ -1267,7 +1280,7 @@ function renderVehicles() {
           <span class="stage-label">${days} dia(s) em prep.</span>
         </div>
         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
-          ${v.accessories && v.accessories.length > 0 ? `<span style="font-size:11px;color:#6b7280">🛠️ ${v.accessories.filter(a=>a.installed).length}/${v.accessories.length} acessórios</span>` : '<span></span>'}
+          <span style="font-size:11px;color:#6b7280">${v.accessories && v.accessories.length > 0 ? `🛠️ ${v.accessories.filter(a=>a.installed).length}/${v.accessories.length}` : ''}${v.fotos && v.fotos.length ? `${v.accessories&&v.accessories.length?' · ':''}📷 ${v.fotos.length}` : ''}</span>
           <span style="font-size:11px;background:#252840;padding:2px 8px;border-radius:10px;color:var(--text-light)">👤 ${STAGES[v.stage].resp}</span>
         </div>
       </div>
@@ -1295,7 +1308,7 @@ function closeDetail() {
 }
 function showDetailTab(tab, btn) {
   currentDetailTab = tab;
-  ['info','checklist','accessories','history'].forEach(t => {
+  ['info','fotos','checklist','accessories','history'].forEach(t => {
     document.getElementById('detailTab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? 'block' : 'none';
   });
   document.querySelectorAll('.detail-tab').forEach(b => b.classList.remove('active'));
@@ -1307,9 +1320,125 @@ function renderDetailTab(tab) {
   const v = data.vehicles.find(v => v.id === currentVehicleId);
   if(!v) return;
   if(tab==='info') renderDetailInfo(v);
+  if(tab==='fotos') renderDetailFotos(v);
   if(tab==='checklist') renderDetailChecklist(v);
   if(tab==='accessories') renderDetailAccessories(v, data);
   if(tab==='history') renderDetailHistory(v);
+}
+
+// ===== FOTOS (vistoria no pátio — câmera do celular) =====
+let _photoType = null;
+let _photoCache = {};   // id -> dataURL (cache em memória)
+
+function capturePhoto(type) {
+  _photoType = type || 'Outra';
+  const inp = document.getElementById('photoInput');
+  inp.value = '';
+  inp.click();
+}
+function onPhotoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  try { e.target.value = ''; } catch(_) {}
+  if (!file) return;
+  toast('📷 Processando foto...');
+  compressImage(file, 1280, 0.55)
+    .then(function (dataUrl) { addVehiclePhoto(_photoType || 'Outra', dataUrl); })
+    .catch(function (err) { console.warn('[foto] erro:', err); toast('Não consegui processar a foto'); });
+}
+function compressImage(file, maxDim, quality) {
+  maxDim = maxDim || 1280; quality = quality || 0.55;
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = function () {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = function () {
+        let w = img.width, h = img.height;
+        if (w >= h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else if (h > w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        try { resolve(c.toDataURL('image/jpeg', quality)); } catch (err) { reject(err); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function addVehiclePhoto(type, dataUrl) {
+  if (!currentVehicleId) return;
+  const id = 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  _photoCache[id] = dataUrl;
+  try { localStorage.setItem('braga_foto_' + id, dataUrl); } catch (e) { console.warn('[foto] localStorage cheio:', e); }
+  const data = getStorage();
+  const v = data.vehicles.find(function (x) { return x.id === currentVehicleId; });
+  if (!v) return;
+  const ts = new Date().toISOString(), user = currentUserName || currentProfile;
+  v.fotos = v.fotos || [];
+  v.fotos.push({ id: id, type: type, ts: ts, user: user });
+  v.history = v.history || [];
+  v.history.push({ ts: ts, action: '📷 Foto registrada (' + type + ')', user: user });
+  setStorage(data);   // sincroniza só os metadados (imagem vai p/ coleção separada)
+  if (window.CloudSync && window.CloudSync.savePhoto) window.CloudSync.savePhoto(id, { d: dataUrl, chassi: v.chassi || '', type: type, ts: Date.now() });
+  renderDetailTab('fotos');
+  toast('📷 Foto registrada');
+}
+function getPhoto(id) {
+  if (_photoCache[id]) return Promise.resolve(_photoCache[id]);
+  try { const ls = localStorage.getItem('braga_foto_' + id); if (ls) { _photoCache[id] = ls; return Promise.resolve(ls); } } catch (e) {}
+  if (window.CloudSync && window.CloudSync.loadPhoto) {
+    return window.CloudSync.loadPhoto(id).then(function (d) {
+      if (d) { _photoCache[id] = d; try { localStorage.setItem('braga_foto_' + id, d); } catch (e) {} }
+      return d;
+    });
+  }
+  return Promise.resolve(null);
+}
+function renderDetailFotos(v) {
+  const el = document.getElementById('detailTabFotos');
+  const fotos = v.fotos || [];
+  const tipos = [['Chassi','🔢'],['Avaria','⚠️'],['Placa','🔖'],['Outra','📷']];
+  const btns = tipos.map(function (t) {
+    return '<button class="btn btn-secondary btn-sm" onclick="capturePhoto(\'' + t[0] + '\')">' + t[1] + ' ' + t[0] + '</button>';
+  }).join(' ');
+  const grid = fotos.length ? fotos.map(function (f) {
+    return '<div class="foto-card">' +
+      '<div class="foto-thumb" id="foto-' + f.id + '" onclick="viewPhoto(\'' + f.id + '\')">⏳</div>' +
+      '<button class="foto-del" onclick="deletePhoto(\'' + f.id + '\')">✕</button>' +
+      '<div class="foto-meta"><b>' + f.type + '</b><br>' + formatDateTime(f.ts) + (f.user ? '<br>' + f.user : '') + '</div>' +
+      '</div>';
+  }).join('') : '<div class="empty"><div class="empty-icon">📷</div><div class="empty-text">Nenhuma foto ainda.<br>Use os botões acima para registrar a vistoria no pátio.</div></div>';
+  el.innerHTML =
+    '<div class="card"><div class="card-title" style="margin-bottom:8px">📷 Vistoria no pátio</div>' +
+    '<div style="font-size:12px;color:var(--text-light);margin-bottom:10px">Tire as fotos com a câmera do celular: chassi, avarias e a placa (quando houver). Elas ficam salvas no veículo.</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' + btns + '</div></div>' +
+    '<div class="foto-grid">' + grid + '</div>';
+  fotos.forEach(function (f) {
+    getPhoto(f.id).then(function (url) {
+      const box = document.getElementById('foto-' + f.id);
+      if (!box) return;
+      if (url) { box.textContent = ''; box.style.backgroundImage = 'url(' + url + ')'; }
+      else { box.textContent = '—'; box.title = 'Imagem indisponível neste aparelho'; }
+    });
+  });
+}
+function viewPhoto(id) {
+  getPhoto(id).then(function (url) {
+    if (!url) { toast('Imagem indisponível neste aparelho'); return; }
+    document.getElementById('photoViewerImg').src = url;
+    document.getElementById('photoViewer').style.display = 'flex';
+  });
+}
+function deletePhoto(id) {
+  if (!confirm('Remover esta foto?')) return;
+  try { localStorage.removeItem('braga_foto_' + id); } catch (e) {}
+  delete _photoCache[id];
+  const data = getStorage();
+  const v = data.vehicles.find(function (x) { return x.id === currentVehicleId; });
+  if (v) { v.fotos = (v.fotos || []).filter(function (f) { return f.id !== id; }); setStorage(data); }
+  if (window.CloudSync && window.CloudSync.deletePhoto) window.CloudSync.deletePhoto(id);
+  renderDetailTab('fotos');
 }
 function renderDetailInfo(v) {
   const el = document.getElementById('detailTabInfo');
