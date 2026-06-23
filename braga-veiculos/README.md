@@ -127,12 +127,15 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
 2. **Importar a frota / programação** — ✅ *pronto:* importador em lote de
    PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi),
    por **upload de PDF** (extração automática) ou colando o texto.
-3. **Fotos da vistoria (pátio)** — ✅ *pronto:* aba **📷 Fotos** no detalhe do
-   veículo captura chassi/avaria/placa pela **câmera** (comprime no celular).
-   As imagens ficam numa coleção separada do Firestore (`braga_fotos`, 1 doc
-   por foto) + cache local — **fora** do documento principal (limite 1 MB);
-   o veículo guarda só os metadados. Requer a regra `braga_fotos` (ver
-   `docs/SETUP_NUVEM.md`). Evolução possível: migrar p/ Firebase Storage.
+3. **Fotos da vistoria (pátio) + verificação do chassi** — ✅ *pronto:* aba
+   **📷 Fotos** captura chassi/avaria/placa pela **câmera** (comprime no
+   celular). Imagens numa coleção separada (`braga_fotos`, 1 doc/foto) + cache
+   local — **fora** do documento principal (limite 1 MB); o veículo guarda só
+   metadados. A foto do **chassi** passa por **OCR (Tesseract.js, no aparelho)**
+   e é **cruzada com o chassi da grade** — a etapa 0 só **libera a preparação**
+   se baterem (`bestVinMatch`, tolera erros de leitura; com override logado).
+   Requer a regra `braga_fotos` (ver `docs/SETUP_NUVEM.md`). Evolução: OCR em
+   nuvem (Vision/LLM) p/ maior precisão; migrar imagens p/ Firebase Storage.
 4. **Sync por veículo** — trocar o last-write-wins por um documento por
    veículo (edição simultânea sem risco de sobrescrita).
 5. **Treinar a equipe** — cada pessoa com seu perfil.

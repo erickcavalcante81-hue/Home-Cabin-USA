@@ -58,7 +58,7 @@ Todo veículo percorre estas etapas (a barrinha de progresso mostra onde está):
 
 | # | Etapa | Quem faz | Atenção |
 |---|-------|----------|---------|
-| 0 | Localização Chassi | Equipe Pátio | 📸 Foto do chassi (e da avaria, se houver) |
+| 0 | Localização Chassi | Equipe Pátio | 📸 Foto do chassi **conferida (OCR × grade)** p/ liberar; foto da avaria se houver |
 | 1 | Acessórios / Películas | Instalação de Acessórios | Só se houver acessório a instalar |
 | 2 | Confirmação de Data | Co-Programador | Aciona a Lista de Entrega |
 | 3 | Lista de Entrega | Co-Programador | Dispara a lavagem |
@@ -237,10 +237,24 @@ Para quem **busca o carro no pátio** e inicia o preparo (etapa 0). Use o
    registrada no **histórico**. Toque numa foto para **ver ampliada**; o **✕**
    remove.
 
+### ✅ Conferência automática do chassi (libera a preparação)
+Ao tirar a **foto do Chassi**, o app **lê o número (OCR)** e **compara com o
+chassi da grade** (que veio da planilha):
+- **Confere** → aparece **"✓ Chassi conferido"** e o veículo pode **avançar**
+  da etapa 0 para a preparação.
+- **Não confere** → mostra a leitura × a grade e a **liberação fica
+  bloqueada** (botão de avançar não aparece). Tire a foto de novo, com o
+  chassi **legível**.
+- Botão **"🔍 Verificar chassi"** refaz a leitura da última foto do chassi.
+- Em exceção (OCR não lê um chassi válido), há **"Liberar manualmente"** —
+  fica **registrado no histórico** como exceção.
+
 **Boas práticas no pátio:**
-- Tire a **foto do chassi** legível (aproxime a câmera da plaqueta/VIN).
+- Tire a **foto do chassi** bem **enquadrada e legível** (aproxime da
+  plaqueta/VIN, sem reflexo) — é o que libera a preparação.
 - Se houver **avaria**, registre **uma foto por avaria** antes de iniciar o preparo.
 - A placa normalmente é fotografada mais à frente (etapa Qualidade + Placa).
+- A leitura do chassi precisa de **internet na 1ª vez** (baixa o leitor de IA).
 
 > As fotos são **comprimidas** no próprio celular (ficam leves) e, com a nuvem
 > ligada, **sincronizam** para a equipe (precisa da regra `braga_fotos` —
