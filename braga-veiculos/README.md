@@ -1,10 +1,13 @@
 # Braga Veículos — Gestão de Entregas
 
 Sistema de gestão de preparação e entrega de veículos zero km da **Braga
-Veículos** (concessionária Chevrolet). App mobile-first em dark mode, com
-pipeline de 8 etapas, 5 perfis de usuário, módulo de entrada de pedidos
-(WhatsApp / e-mail / PDF / imagem), checklists por etapa, registro de
-defeitos e dashboard gerencial.
+Veículos** (concessionária Chevrolet). App mobile-first em dark mode, alinhado
+ao **Fluxograma v5.1**: pipeline de 5 etapas (Preparação → Pré-Entrega →
+Conferência Final → Entrega → Entregue), 9 perfis de usuário (com Torre de
+Controle, Equipe Técnica e Entregador Técnico), entrada das planilhas de
+programação (PDF / texto), fluxo **Via Rápida** (frota/locadora),
+**Reagendamento**, conferência do **VIN SERIAL** (adesivo GM) por OCR,
+checklists por etapa, registro de defeitos e dashboard gerencial.
 
 > **Origem:** este diretório foi integrado a partir da pasta do Google Drive
 > [`BRAGA_VEICULOS_Projeto_Completo`](https://drive.google.com/drive/folders/1fgHxd_fKNutviOia5pn4rs8gZepcNxWT)
@@ -52,21 +55,24 @@ No celular, use **Adicionar à Tela de Início** (iOS) / **Instalar app**
 (Android) para instalar como PWA. Para colocar online com link fixo e dados
 sincronizados entre aparelhos, siga **[`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md)**.
 
-## Pipeline operacional (Fluxograma v4)
+## Pipeline operacional (Fluxograma v5.1)
 
-| # | Etapa                  | Responsável   | Observação                         |
-|---|------------------------|---------------|------------------------------------|
-| 0 | Localização Chassi     | Equipe Pátio  | Foto do chassi obrigatória         |
-| 1 | Acessórios / Películas | Inst. Acessórios | Só se houver acessório a instalar |
-| 2 | Confirmação de Data    | Co-Programador | Aciona a Lista de Entrega          |
-| 3 | Lista de Entrega       | Co-Programador | Gatilho que ativa a lavagem        |
-| 4 | Lavagem e Acabamento   | Lavador/Tapete | Lavagem + tapete de fábrica        |
-| 5 | Qualidade + Placa      | Responsável   | Foto da placa obrigatória          |
-| 6 | Entregador Técnico     | Braga         | Fotos: chassi + placa instalada    |
-| 7 | Concluído              | —             | Registrado no app                  |
+| # | Etapa                  | Responsável        | Observação                                            |
+|---|------------------------|--------------------|-------------------------------------------------------|
+| 0 | Preparação no Estoque  | Colaborador Pátio  | Foto do **VIN SERIAL** (adesivo GM) obrigatória; acessórios/películas; lavagem + tapete; **Via Rápida** = frota/locadora (só lavagem + tapete, prioridade) |
+| 1 | Pré-Entrega            | Programador        | Validação, liberação financeira, docs e **agendamento** (48 h antes) |
+| 2 | Conferência Final      | Equipe Técnica     | Confere etapas anteriores; **placa** instalada; foto da placa |
+| 3 | Entrega ao Cliente     | Entregador Técnico | Conferência com o cliente; fotos finais (VIN SERIAL + placa); **Planilha 4** |
+| 4 | Entregue               | —                  | Encerrado no app                                      |
 
-**Perfis de acesso:** Gerente (dashboard) · Programador · Co-Programador ·
-Preparador · Instalação de Acessórios · Lavador / Tapete.
+Fora do fluxo linear: **Reagendamento** (cliente não compareceu → volta para
+Pré-Entrega e pede nova data) e o **portão do chassi** na etapa 0 (a preparação
+só é liberada quando a foto do VIN SERIAL/chassi **confere** com a grade).
+
+**Perfis de acesso (9):** Gerente (dashboard) · Torre de Controle ·
+Programador · Co-Programador · Colaborador de Pátio · Instalação de Acessórios ·
+Lavador / Tapete · Equipe Técnica · Entregador Técnico. *(Sem nomes pessoais —
+apenas cargos e descrições.)*
 
 **Remetentes WhatsApp autorizados:** Adriana · Adriano · Junior Leão ·
 Adriano Junior.
@@ -76,13 +82,16 @@ Adriano Junior.
 O app trabalha sobre o `localStorage` do navegador, na chave **`braga_data`**:
 
 ```js
-{ vehicles: [], defects: [], intakes: [], nextId: 1 }
+{ vehicles: [], defects: [], intakes: [], nextId: 1, _schema: 51 }
 ```
 
 Cada veículo é identificado pelo **`chassi`** (chave de deduplicação) e tem
 `model/versao/client/color/seller/accessories[]/stage` + os campos
-operacionais `entregador` e `horarioEntrega`. Toda a persistência passa por
-duas funções isoladas — `getStorage()` e `setStorage()` (em `app/index.html`).
+operacionais `entregador`, `horarioEntrega`, `viaRapida` (frota/locadora) e
+`reagendado`. Toda a persistência passa por duas funções isoladas —
+`getStorage()` e `setStorage()` (em `app/index.html`). Na leitura,
+`migrateStages()` converte **uma única vez** dados do pipeline antigo (8 etapas
+v4) para as **5 etapas do v5.1** e marca `_schema: 51` (idempotente).
 
 **Importação em lote (Entrada → "Planilha de Entrega"):** dá para **subir o
 PDF** da planilha (extração automática via PDF.js, sem copiar/colar) **ou**
@@ -127,15 +136,17 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
 2. **Importar a frota / programação** — ✅ *pronto:* importador em lote de
    PLANILHA DE ENTREGA / preparação no módulo Entrada (dedup por chassi),
    por **upload de PDF** (extração automática) ou colando o texto.
-3. **Fotos da vistoria (pátio) + verificação do chassi** — ✅ *pronto:* aba
-   **📷 Fotos** captura chassi/avaria/placa pela **câmera** (comprime no
+3. **Fotos da vistoria (pátio) + verificação do VIN SERIAL** — ✅ *pronto:* aba
+   **📷 Fotos** captura VIN SERIAL/avaria/placa pela **câmera** (comprime no
    celular). Imagens numa coleção separada (`braga_fotos`, 1 doc/foto) + cache
    local — **fora** do documento principal (limite 1 MB); o veículo guarda só
-   metadados. A foto do **chassi** passa por **OCR (Tesseract.js, no aparelho)**
-   e é **cruzada com o chassi da grade** — a etapa 0 só **libera a preparação**
-   se baterem (`bestVinMatch`, tolera erros de leitura; com override logado).
-   Requer a regra `braga_fotos` (ver `docs/SETUP_NUVEM.md`). Evolução: OCR em
-   nuvem (Vision/LLM) p/ maior precisão; migrar imagens p/ Firebase Storage.
+   metadados. A foto do **VIN SERIAL** passa por **OCR (Tesseract.js, no
+   aparelho)** e é **cruzada com a grade** — aprova pelo **VIN SERIAL de 6
+   dígitos** (adesivo GM, `bestSerialMatch`) **ou** pelo chassi cheio
+   (`bestVinMatch`); a etapa 0 só **libera a preparação** se baterem (tolera
+   erros de leitura; com override logado). Requer a regra `braga_fotos` (ver
+   `docs/SETUP_NUVEM.md`). Evolução: OCR em nuvem (Vision/LLM) p/ maior
+   precisão; migrar imagens p/ Firebase Storage.
 4. **Sync por veículo** — trocar o last-write-wins por um documento por
    veículo (edição simultânea sem risco de sobrescrita).
 5. **Treinar a equipe** — cada pessoa com seu perfil.
