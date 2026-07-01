@@ -3,8 +3,10 @@
 **Acesse em:** https://entrega-braga.netlify.app
 **Funciona em:** celular e computador (navegador). Dá para instalar como app.
 
-Este manual explica o app para **todos os perfis**: Gerente, Programador,
-Co-Programador, Preparador, Instalação de Acessórios e Lavador / Tapete.
+Este manual explica o app (alinhado ao **Fluxograma v5.1**) para **todos os
+perfis**: Gerente, Torre de Controle, Programador, Co-Programador, Colaborador
+de Pátio, Instalação de Acessórios, Lavador / Tapete, Equipe Técnica e
+Entregador Técnico.
 
 ---
 
@@ -17,10 +19,11 @@ Co-Programador, Preparador, Instalação de Acessórios e Lavador / Tapete.
 3. Vira um ícone como qualquer app, abre em tela cheia e funciona até **sem internet** (sincroniza quando a conexão volta).
 
 ### Entrar (escolher o perfil)
-Na tela inicial, toque no seu perfil: **Gerente**, **Programador**,
-**Co-Programador**, **Preparador**, **Instalação de Acessórios** ou
-**Lavador / Tapete**. Para trocar de perfil, toque no cargo no canto
-superior direito.
+Na tela inicial, toque no seu perfil: **Gerente**, **Torre de Controle**,
+**Programador**, **Co-Programador**, **Colaborador de Pátio**, **Instalação de
+Acessórios**, **Lavador / Tapete**, **Equipe Técnica** ou **Entregador
+Técnico**. Para trocar de perfil, toque no cargo no canto superior direito.
+*(Os perfis são por **cargo** — sem nomes pessoais.)*
 
 ### O chip de sincronização (canto superior direito)
 Mostra se os dados estão na nuvem (sincronizados entre todos os aparelhos):
@@ -47,25 +50,28 @@ Mostra se os dados estão na nuvem (sincronizados entre todos os aparelhos):
 | ⚠️ **Defeitos** | Registrar e acompanhar avarias/defeitos |
 
 *Todos os perfis enxergam todas as abas — cada um foca nas suas tarefas
-(abaixo). O botão **+** (cadastrar veículo) aparece só para Gerente,
-Programador e Co-Programador.*
+(abaixo). O botão **+** (cadastrar veículo) aparece só para Gerente, Torre de
+Controle, Programador e Co-Programador.*
 
 ---
 
-## 3. O fluxo de 8 etapas
+## 3. O fluxo de 5 etapas (v5.1)
 
 Todo veículo percorre estas etapas (a barrinha de progresso mostra onde está):
 
 | # | Etapa | Quem faz | Atenção |
 |---|-------|----------|---------|
-| 0 | Localização Chassi | Equipe Pátio | 📸 Foto do chassi **conferida (OCR × grade)** p/ liberar; foto da avaria se houver |
-| 1 | Acessórios / Películas | Instalação de Acessórios | Só se houver acessório a instalar |
-| 2 | Confirmação de Data | Co-Programador | Aciona a Lista de Entrega |
-| 3 | Lista de Entrega | Co-Programador | Dispara a lavagem |
-| 4 | Lavagem e Acabamento | Lavador / Tapete | Lavagem + tapete de fábrica |
-| 5 | Qualidade + Placa | Responsável | 📸 Foto da placa instalada |
-| 6 | Entregador Técnico | Braga | 📸 Foto do chassi + da placa |
-| 7 | Concluído | — | Registrado no app |
+| 0 | 🔧 Preparação no Estoque | Colaborador de Pátio | 📸 Foto do **VIN SERIAL** (adesivo GM) **conferida (OCR × grade)** p/ liberar; acessórios/películas; lavagem + tapete; avaria → foto + avisar |
+| 1 | 📄 Pré-Entrega | Programador | Validação, liberação financeira, documentos e **agendamento** (48 h antes) |
+| 2 | 🏁 Conferência Final | Equipe Técnica | Confere etapas anteriores; **placa** instalada; 📸 foto da placa |
+| 3 | 🚗 Entrega ao Cliente | Entregador Técnico | Conferência com o cliente; 📸 VIN SERIAL + placa; **Planilha 4** |
+| 4 | ✅ Entregue | — | Encerrado no app |
+
+**Fora do fluxo linear:**
+- **⚡ Via Rápida (Frota/Locadora):** veículos sem acessório — só **lavagem +
+  tapete**, com **prioridade**. Botão no detalhe do veículo (marca/desmarca).
+- **🔁 Reagendamento:** se o cliente **não compareceu**, o veículo **volta para
+  Pré-Entrega** e o app pede a nova data (registra o motivo no histórico).
 
 ---
 
@@ -81,13 +87,20 @@ Seu foco é **acompanhar**, não operar.
 - Aba **Defeitos** para ver pendências de qualidade.
 - Você também pode cadastrar veículos (botão **+**), se precisar.
 
+### 🗼 Torre de Controle
+Você é o **ponto central de comunicação e atribuição** — monitora todo o fluxo.
+- Aba **Dashboard** para a visão geral e **Veículos** para acompanhar caso a caso.
+- Garante que a **comunicação obrigatória** aconteça a cada conclusão de etapa
+  (equipe, vendedor, gerência) e que cada veículo tenha responsável.
+- Pode cadastrar veículos e importar planilhas (botão **+** / aba **Entrada**).
+
 ### 📋 Programador (coração da operação)
-Você organiza o pipeline do início ao fim.
+Você organiza o pipeline e cuida da **Pré-Entrega**.
 - **Cadastrar veículos:** botão **+** (um a um) **ou** aba **Entrada** para
   importar uma **planilha inteira** de uma vez (ver seção 5).
 - **Acompanhar o pipeline:** aba **Veículos** → abra um veículo → aba **Info**.
 - **Agendar a entrega:** no detalhe do veículo, campo **"Agendar Data de
-  Entrega"** → escolha a data → **Salvar**.
+  Entrega"** → escolha a data → **Salvar** (etapa **Pré-Entrega**, 48 h antes).
 - **Avançar as etapas:** conforme a equipe conclui cada fase, abra o veículo e
   toque em **"✓ Concluir: <etapa> → <próxima>"** (ver seção 6).
 
@@ -97,61 +110,101 @@ Você recebe os pedidos (geralmente do Programador, por WhatsApp) e alimenta o a
   verde **"Recebi mensagem do Programador"** — toque, escolha o remetente
   autorizado, cole o texto e confirme.
 - Você também importa **planilhas** (PDF) e cadastra veículos (botão **+**).
-- É o responsável pelas etapas **2 (Confirmação de Data)** e **3 (Lista de
-  Entrega)** — confirme a data com o cliente e avance essas etapas.
+- Apoia o Programador na **Pré-Entrega**: confirma data/horário com o cliente e
+  mantém as listas atualizadas.
 
-### 🔧 Preparador de Veículos
-Seu trabalho aparece na aba **Checklist**.
-1. Aba **Checklist** → escolha o veículo da lista.
-2. Aparece o checklist **da etapa atual** dele (ex.: lavagem, qualidade).
-3. **Toque em cada item** conforme vai fazendo — ele fica verde. A barrinha
-   mostra o progresso (ex.: 5/9).
-4. Itens com **📸 (foto obrigatória)** lembram de registrar a foto do chassi/
-   placa/avaria antes de concluir.
+### 🔧 Colaborador de Pátio
+Você **busca o veículo no estoque** e faz a **Preparação** (etapa 0).
+1. Aba **Veículos** → abra o veículo (use a **busca** por chassi/cliente).
+2. Aba **📷 Fotos** → tire a foto do **VIN SERIAL** (adesivo GM no para-brisa):
+   o app **lê e confere com a grade** — só assim a preparação é **liberada**
+   (ver seção 11). Avaria? Registre **uma foto por avaria** e avise a equipe.
+3. Aba **Checklist** → marque a preparação item a item (acessórios, películas,
+   lavagem, tapete, conferência) conforme avança.
+4. **⚡ Via Rápida?** Se for frota/locadora (sem acessório), marque o botão
+   **Via Rápida** no detalhe — o foco vira **lavagem + tapete** com prioridade.
 5. Achou um problema no carro? Registre em **Defeitos** (ver seção 9).
 
 ### 🛠️ Instalação de Acessórios
-Para veículos **com** acessórios/películas (etapa 1).
+Para veículos **com** acessórios/películas (dentro da **Preparação**).
 1. Aba **Veículos** → abra o veículo → aba **Acessórios**.
 2. Toque na **bolinha** ao lado de cada acessório quando instalar — vira ✅ e
    grava a data automaticamente.
 3. Faltou um acessório na lista? Toque em **"+ Adicionar"** e digite o nome.
-4. Com tudo instalado e conferido, o veículo pode avançar da etapa 1.
+4. Com tudo instalado e conferido, o veículo segue na preparação.
 
 ### ✨ Lavador / Tapete
-Para a **lavagem e acabamento** (etapa 4) — inclui os veículos que **não têm
-acessório**: são apenas lavados e entregues com o **tapete de fábrica**.
-1. Aba **Checklist** → escolha o veículo (etapa **Lavagem e Acabamento**).
-2. **Toque em cada item** da lavagem conforme faz, incluindo
-   **"Tapete (item de fábrica) instalado no veículo"**.
-3. Concluído o checklist, o veículo segue para **Qualidade + Placa**.
-> Veículo sem acessório passa direto pela etapa 1 (nada a instalar) e o foco é
-> a sua etapa: lavar, colocar o tapete e encaminhar para a entrega.
+Para a **lavagem e acabamento** — inclui os veículos que **não têm acessório**
+(⚡ Via Rápida): são apenas lavados e entregues com o **tapete de fábrica**.
+1. Aba **Checklist** → escolha o veículo na **Preparação**.
+2. **Toque em cada item** da lavagem conforme faz, incluindo o **tapete de
+   fábrica**.
+3. Concluída a preparação, o veículo segue para a **Pré-Entrega**.
+> Veículo **Via Rápida** não tem acessório a instalar — o foco é a sua etapa:
+> lavar, colocar o tapete e encaminhar (com prioridade).
+
+### 🏁 Equipe Técnica
+Você faz a **Conferência Final** (etapa 2).
+1. Aba **Veículos** → abra o veículo na **Conferência Final**.
+2. Aba **Checklist** → confira **todas as etapas anteriores**, acessórios,
+   películas e lavagem.
+3. Confirme a **placa instalada** e registre a **📸 foto da placa** (aba Fotos).
+4. Validado, avance para **Entrega ao Cliente**.
+
+### 🚗 Entregador Técnico
+Você faz a **Entrega ao Cliente** (etapa 3).
+1. Acione o cliente e faça a **conferência final** junto com ele.
+2. Aba **📷 Fotos** → registre o **VIN SERIAL + placa** (registro final).
+3. Colha o aceite/assinatura e **atualize a Planilha 4 (Entregues)**.
+4. Avance para **Entregue** — o veículo é encerrado no app.
 
 ---
 
-## 5. Importar uma PLANILHA DE ENTREGA (vários veículos de uma vez)
+## 5. Importar as 4 planilhas de programação (lote — v5.1)
 
-Para Programador/Co-Programador/Gerente. Cadastra a planilha do dia inteira em segundos —
-**de forma automática, sem precisar selecionar ou confirmar veículo por veículo**.
+Para Gerente/Torre/Programador/Co-Programador. Cadastra a planilha inteira em
+segundos — **de forma automática, sem precisar selecionar ou confirmar veículo
+por veículo**.
 
 1. Aba **Entrada** → **"+ Nova Entrada"**.
-2. Escolha a origem **"📋 Planilha de Entrega (lote)"**.
-3. **Opção A — PDF:** em **"Ler direto de um PDF"**, toque e escolha o arquivo
-   (ex.: `PLANILHA DE ENTREGA - 23_06.pdf`). O app lê tudo sozinho.
-   **Opção B — Colar:** cole o texto da planilha no campo de baixo.
-4. O app **aplica tudo automaticamente** e mostra um **resumo**:
+2. Escolha a origem **"📋 Planilhas de programação (lote)"**.
+3. **Escolha qual planilha** (a regra muda conforme o tipo):
+   - **1 · 🔧 Preparação** — cadastra novos na **Preparação** e atualiza os existentes.
+   - **2 · 🚗 Entrega (agendar)** — define **data/horário/entregador** e leva o
+     veículo para a **Pré-Entrega**.
+   - **3 · 🔁 Reagendamento** — marca **🔁 Reagendado** e volta para a Pré-Entrega.
+   - **4 · ✅ Entregues** — marca os veículos como **✅ Entregue**.
+4. **Opção A — PDF:** em **"Ler direto de um PDF"**, toque e escolha o arquivo.
+   O app lê tudo sozinho. **Opção B — Colar:** cole o texto no campo de baixo.
+5. O app **aplica tudo automaticamente** e mostra um **resumo** (com o tipo da
+   planilha):
    - **✅ Novos** — cadastrados direto.
-   - **🔔 Atualizados** — veículos que já existiam (mesmo chassi) e tiveram
-     alguma mudança (ex.: trocou o entregador ou o horário). O app **substitui
-     pela versão mais recente** e marca o veículo com a tag **🔔 Alterado** na
-     lista de Veículos. A tag **some quando alguém abre** o veículo.
+   - **🔔 Atualizados** — já existiam (mesmo chassi) e mudaram. O app **substitui
+     pela versão mais recente** e marca com **🔔 Alterado** na lista. A tag
+     **some quando alguém abre** o veículo.
    - **= Sem mudança** — já estavam idênticos (nada a fazer).
 
 > O **chassi** é o identificador: reimportar a mesma planilha **não duplica**.
-> Etapa, checklists e fotos do veículo são **preservados** numa atualização —
-> só os dados da planilha (cliente, cor, vendedor, entregador, horário, data,
-> acessórios) são atualizados, e o histórico registra exatamente o que mudou.
+> Checklists e fotos são **preservados**; só os dados da planilha (cliente, cor,
+> vendedor, entregador, horário, data, acessórios) e a **etapa/estado** conforme
+> o tipo são atualizados, e o histórico registra o que mudou.
+
+---
+
+## 5b. Torre de Controle, comunicação e responsável
+
+- **🗼 Torre de Controle (Dashboard):** no topo do Dashboard, o painel de
+  **pendências** — chassi/VIN SERIAL não conferido, **comunicação pendente**,
+  **sem responsável**, Pré-Entrega sem data e atrasados. Toque numa pendência
+  para expandir e vá direto ao veículo.
+- **📲 Comunicar (obrigatório a cada etapa):** ao concluir uma etapa, o veículo
+  fica com **📲 Comunicar** e o botão aparece em destaque no detalhe. Toque para
+  o app **montar a mensagem** (veículo, chassi, etapa, responsável, entrega) e
+  **compartilhar/copiar** no WhatsApp — Equipe · Vendedor · Gerência · Torre. Ao
+  enviar, a pendência é resolvida e fica registrada no histórico.
+- **👤 Responsável:** no detalhe do veículo, informe **quem está responsável**
+  pela etapa atual e toque em **Salvar**. Aparece no card e na Torre; a cada
+  avanço de etapa o responsável é **zerado** para ser reatribuído.
 
 ---
 
@@ -161,18 +214,23 @@ Para Programador/Co-Programador/Gerente. Cadastra a planilha do dia inteira em s
 2. Role até embaixo:
    - **"✓ Concluir: <etapa atual> → <próxima>"** avança para a próxima etapa.
    - **"‹ Voltar: <etapa anterior>"** volta uma etapa (se errou).
+   - **"⚡ Marcar Via Rápida"** (frota/locadora): só lavagem + tapete, prioridade.
+   - **"🔁 Reagendamento"** (a partir da Pré-Entrega): cliente não compareceu →
+     o veículo volta para a Pré-Entrega e o app pede a nova data.
 3. A linha do tempo mostra o que já foi concluído e o que está em andamento.
-4. Ao concluir a última etapa, aparece **"🎉 Serviço Concluído!"**.
+4. Na **etapa 0 (Preparação)** o avanço só aparece com o **VIN SERIAL conferido**
+   (ver seção 11).
+5. Ao concluir a última etapa, aparece **"🎉 Entregue!"**.
 
 ---
 
 ## 7. Cadastrar UM veículo manualmente
 
-Para Programador/Co-Programador/Gerente.
+Para Gerente/Torre/Programador/Co-Programador.
 1. Toque no botão **+** (canto inferior direito).
 2. Preencha: modelo, cor, placa/chassi, nº fatura, cliente, celular, data da
    fatura, consultor e observações.
-3. **Salvar** — ele entra na etapa 0.
+3. **Salvar** — ele entra na etapa 0 (**Preparação no Estoque**).
 
 ---
 
@@ -217,44 +275,47 @@ o app atualiza sozinho e marca com **🔔 Alterado** para a equipe perceber. A t
 **Trocar de perfil?**
 Toque no seu nome (canto superior direito) → confirme.
 
-**Como registro as fotos (chassi/placa/avaria)?**
-Abra o veículo → aba **📷 Fotos** → toque em **Chassi**, **Avaria**, **Placa**
-ou **Outra**: abre a **câmera do celular**, você tira a foto e ela fica salva
-no veículo. Veja o passo a passo na seção 11.
+**Como registro as fotos (VIN SERIAL/placa/avaria)?**
+Abra o veículo → aba **📷 Fotos** → toque em **VIN SERIAL**, **Avaria**,
+**Placa** ou **Outra**: abre a **câmera do celular**, você tira a foto e ela
+fica salva no veículo. Veja o passo a passo na seção 11.
 
 ---
 
 ## 11. 📷 Registrar fotos da vistoria no pátio
 
-Para quem **busca o carro no pátio** e inicia o preparo (etapa 0). Use o
-**celular** para fotografar o chassi, avarias e a placa.
+Para quem **busca o carro no pátio** e inicia a **Preparação** (etapa 0). Use o
+**celular** para fotografar o VIN SERIAL, avarias e a placa.
 
 1. Aba **Veículos** → toque no veículo (use a **busca** por chassi/cliente).
 2. Abra a aba **📷 Fotos**.
-3. Toque no tipo da foto: **🔢 Chassi**, **⚠️ Avaria**, **🔖 Placa** ou
+3. Toque no tipo da foto: **🔢 VIN SERIAL**, **⚠️ Avaria**, **🔖 Placa** ou
    **📷 Outra** → abre a **câmera do celular** → tire a foto.
 4. A foto entra na grade do veículo (com tipo, data e quem registrou) e fica
    registrada no **histórico**. Toque numa foto para **ver ampliada**; o **✕**
    remove.
 
-### ✅ Conferência automática do chassi (libera a preparação)
-Ao tirar a **foto do Chassi**, o app **lê o número (OCR)** e **compara com o
-chassi da grade** (que veio da planilha):
-- **Confere** → aparece **"✓ Chassi conferido"** e o veículo pode **avançar**
+### ✅ Conferência automática do VIN SERIAL (libera a preparação)
+Ao tirar a **foto do VIN SERIAL**, o app **lê o número (OCR)** e **compara com a
+grade** (que veio da planilha). Aprova de duas formas:
+- pelo **VIN SERIAL de 6 dígitos** do adesivo GM (no para-brisa), **ou**
+- pelo **chassi cheio** (17 caracteres, na etiqueta da porta/vidro).
+
+- **Confere** → aparece **"✓ VIN SERIAL conferido"** e o veículo pode **avançar**
   da etapa 0 para a preparação.
 - **Não confere** → mostra a leitura × a grade e a **liberação fica
-  bloqueada** (botão de avançar não aparece). Tire a foto de novo, com o
-  chassi **legível**.
-- Botão **"🔍 Verificar chassi"** refaz a leitura da última foto do chassi.
-- Em exceção (OCR não lê um chassi válido), há **"Liberar manualmente"** —
+  bloqueada** (botão de avançar não aparece). Tire a foto de novo, com o número
+  **legível**.
+- Botão **"🔍 Verificar chassi"** refaz a leitura da última foto.
+- Em exceção (OCR não lê um número válido), há **"Liberar manualmente"** —
   fica **registrado no histórico** como exceção.
 
 **Boas práticas no pátio:**
-- Tire a **foto do chassi** bem **enquadrada e legível** (aproxime da
-  plaqueta/VIN, sem reflexo) — é o que libera a preparação.
+- Fotografe o **VIN SERIAL** (adesivo GM no para-brisa) bem **enquadrado e
+  legível**, sem reflexo — é o que libera a preparação.
 - Se houver **avaria**, registre **uma foto por avaria** antes de iniciar o preparo.
-- A placa normalmente é fotografada mais à frente (etapa Qualidade + Placa).
-- A leitura do chassi precisa de **internet na 1ª vez** (baixa o leitor de IA).
+- A placa normalmente é fotografada mais à frente (Conferência Final / Entrega).
+- A leitura precisa de **internet na 1ª vez** (baixa o leitor de IA).
 
 > As fotos são **comprimidas** no próprio celular (ficam leves) e, com a nuvem
 > ligada, **sincronizam** para a equipe (precisa da regra `braga_fotos` —
