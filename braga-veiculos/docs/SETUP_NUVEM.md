@@ -36,19 +36,25 @@ Tempo estimado: ~15 minutos.
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
-       match /braga/data {
-         allow read, write: if request.auth != null;
+       match /braga/{doc} {
+         allow read, write: if request.auth != null;   // legado braga/data + braga/meta
+       }
+       match /braga_veiculos/{id} {
+         allow read, write: if request.auth != null;   // um documento por veículo
        }
        match /braga_fotos/{id} {
-         allow read, write: if request.auth != null;
+         allow read, write: if request.auth != null;   // fotos da vistoria
        }
      }
    }
    ```
 
-   > A segunda regra (`braga_fotos`) libera as **fotos da vistoria** (guardadas
-   > em documentos separados). Sem ela, as fotos ficam **só no aparelho** que
-   > tirou; com ela, sincronizam para toda a equipe.
+   > **`braga_veiculos`** guarda **um documento por veículo** (sync por veículo —
+   > dois aparelhos editam veículos diferentes sem se sobrescrever). **`braga`**
+   > cobre o `braga/meta` (defeitos/entradas/contadores) e o `braga/data` antigo
+   > (migrado automaticamente). **`braga_fotos`** libera as **fotos da vistoria**
+   > (documentos separados) — sem ela, as fotos ficam só no aparelho que tirou.
+   > Se você já tinha as regras antigas, **basta publicar estas** por cima.
 
    Isso permite ler/gravar **apenas** o documento do app, e **apenas** para
    quem está autenticado (o login anônimo do próprio app).
@@ -102,6 +108,30 @@ Assim que houver chaves válidas, a sincronização liga sozinha.
 2. O arquivo `netlify.toml` (na raiz) já aponta o publish para
    `braga-veiculos/app` — é só confirmar e **Deploy**.
 
+## Parte 4b — (Opcional) OCR do VIN SERIAL na nuvem — mais preciso
+
+O app já lê o **VIN SERIAL** (adesivo GM) pelo OCR **do próprio aparelho**
+(Tesseract). Para **mais precisão**, dá para ligar um OCR na **nuvem** — a
+chave fica no **servidor** (função Netlify `netlify/functions/ocr-vin.js`),
+nunca no app. Se não configurar, o app usa o OCR local normalmente (fallback
+automático).
+
+Escolha **um** provedor e configure a variável no Netlify
+(**Site settings → Environment variables**):
+
+- **Google Cloud Vision** (recomendado — mesmo projeto do Firebase):
+  1. No **Google Cloud Console** do projeto, habilite a **Cloud Vision API**.
+  2. Crie uma **API key** (APIs & Services → Credentials).
+  3. No Netlify, defina `GOOGLE_VISION_API_KEY = <sua chave>`.
+- **ou Claude (Anthropic):** defina `ANTHROPIC_API_KEY = <sua chave>`.
+
+Depois é só **redeployar** (ou um novo push). O app passa a tentar a nuvem
+primeiro e mostra a fonte da leitura (**OCR nuvem** / **OCR aparelho**) no
+histórico e no selo do chassi.
+
+> Custo: ambos são pagos por uso (o Vision tem cota grátis mensal); o OCR só é
+> chamado ao tirar a foto do VIN SERIAL. Sem chave = 100% local, sem custo.
+
 ## Parte 5 — Usar e instalar como app no celular
 
 1. Abra o link do Netlify no celular.
@@ -121,17 +151,20 @@ noutro) e cadastre/edite um veículo: a mudança aparece no outro em segundos.
 - **Offline-first:** o app trabalha sobre o `localStorage`; o Firestore é um
   espelho em tempo real. Sem internet, tudo continua funcionando e sincroniza
   ao reconectar.
-- O banco inteiro fica em **um documento** `braga/data`. A cada alteração, o
-  app envia o estado completo (com *debounce*) e escuta atualizações via
-  `onSnapshot`.
-- **Conflito (v1):** vale a última escrita (*last-write-wins*). Bom para uma
-  equipe pequena editando veículos diferentes. Evolução natural: um documento
-  por veículo, para edição simultânea sem risco de sobrescrita.
+- **Sync por veículo:** cada veículo é **um documento** em `braga_veiculos/{id}`;
+  o app escreve **só o que mudou** (diff) e escuta a coleção via `onSnapshot`.
+  Defeitos/entradas/contadores ficam num documento de apoio `braga/meta`. Assim,
+  dois aparelhos editando **veículos diferentes** não se sobrescrevem (dentro do
+  **mesmo** veículo, ainda vale a última escrita).
+- **Migração automática:** na 1ª conexão, se a coleção estiver vazia e existir o
+  `braga/data` antigo (modelo v1, documento único), os veículos são **migrados
+  sozinhos** para `braga_veiculos` (o `braga/data` é preservado). Enquanto os
+  aparelhos atualizam para a nova versão (service worker), pode haver um curto
+  período de convivência — assim que todos recarregam, ficam no novo modelo.
 - Com a nuvem ligada, o app **não** carrega os dados de exemplo (demo) — ele
-  começa do que estiver na nuvem. Cadastre o primeiro veículo e ele aparece em
-  todos os aparelhos.
+  começa do que estiver na nuvem.
 
 ## Próximas evoluções sugeridas
-- Documento por veículo (edição simultânea sem last-write-wins).
-- Fotos (chassi/avaria/placa) no Firebase Storage.
+- Fotos (VIN SERIAL/avaria/placa) no Firebase Storage.
 - Regras por perfil (quem pode editar o quê) com papéis no login.
+- ID de veículo por chassi (evitar colisão de `nextId` entre aparelhos offline).

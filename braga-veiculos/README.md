@@ -138,8 +138,11 @@ sem internet e sincroniza ao reconectar. **Sem chaves, a sincronização fica
 desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
 [`docs/SETUP_NUVEM.md`](docs/SETUP_NUVEM.md).
 
-> Conflito (v1): o banco inteiro é um documento; vale a última escrita
-> (*last-write-wins*). Evolução natural: um documento por veículo.
+> **Sync por veículo (v2):** cada veículo é um documento em `braga_veiculos/{id}`
+> e o app escreve só o que mudou (diff); defeitos/entradas/contadores ficam em
+> `braga/meta`. Editar veículos diferentes em aparelhos diferentes não gera
+> sobrescrita (dentro do mesmo veículo ainda vale a última escrita). Migração do
+> `braga/data` (v1) é automática na 1ª conexão. Detalhes em `cloud-sync.js`.
 
 ## Roadmap / próximos passos
 
@@ -154,17 +157,24 @@ desligada e o app roda 100% local, como antes.** Passo a passo para ligar:
    **📷 Fotos** captura VIN SERIAL/avaria/placa pela **câmera** (comprime no
    celular). Imagens numa coleção separada (`braga_fotos`, 1 doc/foto) + cache
    local — **fora** do documento principal (limite 1 MB); o veículo guarda só
-   metadados. A foto do **VIN SERIAL** passa por **OCR (Tesseract.js, no
-   aparelho)** e é **cruzada com a grade** — aprova pelo **VIN SERIAL de 6
-   dígitos** (adesivo GM, `bestSerialMatch`) **ou** pelo chassi cheio
-   (`bestVinMatch`); a etapa 0 só **libera a preparação** se baterem (tolera
-   erros de leitura; com override logado). Requer a regra `braga_fotos` (ver
-   `docs/SETUP_NUVEM.md`). Evolução: OCR em nuvem (Vision/LLM) p/ maior
-   precisão; migrar imagens p/ Firebase Storage.
-4. **Sync por veículo** — trocar o last-write-wins por um documento por
-   veículo (edição simultânea sem risco de sobrescrita).
-5. **Treinar a equipe** — cada pessoa com seu perfil.
-6. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
+   metadados. A foto do **VIN SERIAL** passa por **OCR** e é **cruzada com a
+   grade** — aprova pelo **VIN SERIAL de 6 dígitos** (adesivo GM,
+   `bestSerialMatch`) **ou** pelo chassi cheio (`bestVinMatch`); a etapa 0 só
+   **libera a preparação** se baterem (com override logado). O OCR é
+   **cloud-first**: usa a função Netlify `ocr-vin` (Google Vision **ou** Claude,
+   chave no servidor) e **cai para o Tesseract.js no aparelho** se a nuvem não
+   estiver configurada/estiver offline. Requer a regra `braga_fotos` (ver
+   `docs/SETUP_NUVEM.md`).
+4. **Sync por veículo** — ✅ *pronto:* um documento por veículo
+   (`braga_veiculos/{id}`) + `braga/meta`, com escrita por diff e migração
+   automática do modelo v1 (ver seção acima e `docs/SETUP_NUVEM.md`).
+5. **OCR do VIN SERIAL na nuvem** — ✅ *pronto (opcional):* função serverless
+   `netlify/functions/ocr-vin.js` (Google Vision/Claude) com fallback local;
+   liga-se por variável de ambiente no Netlify (ver `docs/SETUP_NUVEM.md`).
+6. **Treinar a equipe** — cada pessoa com seu perfil.
+7. **Integração D4 / Andreza** — alinhar fluxo de fatura e acessórios.
+8. **Evoluções:** imagens no Firebase Storage; ID de veículo por chassi
+   (evitar colisão de `nextId` entre aparelhos offline); regras por perfil.
 
 Documentos de referência completos em [`docs/`](docs/) — em especial o
 **[Manual de Uso](docs/MANUAL_DE_USO.md)** (para a equipe) e o
