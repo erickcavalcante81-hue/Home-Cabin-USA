@@ -4,7 +4,7 @@
    no cache para continuar funcionando offline.
    Requisições de outras origens (Firebase/Firestore, gstatic, CDN do PDF.js)
    passam direto pela rede. */
-const CACHE = 'braga-v55';
+const CACHE = 'braga-v56';
 const CORE = [
   './',
   './index.html',
