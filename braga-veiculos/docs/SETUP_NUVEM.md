@@ -61,20 +61,10 @@ Tempo estimado: ~15 minutos.
 
 ## Parte 3 — Colar as chaves no app
 
-Há **duas formas** (escolha uma):
-
-**Forma A — Direto no app (mais fácil, sem mexer em arquivo):**
-1. Abra o app → toque em **☁️ Configurar sincronização** (na tela de login) ou
-   no **chip ☁️** no topo.
-2. **Cole o bloco `firebaseConfig`** que você copiou na Parte 1 → **Salvar e
-   conectar**. O app reinicia já sincronizando. O chip no topo mostra o status:
-   🟢 Sincronizado · 🟡 Conectando · 🔴 Sem conexão · ⚪ Local.
-   - *Obs.: isso vale por aparelho.* Para configurar a equipe toda de uma vez,
-     use a Forma B (ou me mande as chaves que eu deixo embutido no app).
-
-**Forma B — No arquivo (todos os aparelhos já vêm configurados):**
-Abra **`braga-veiculos/app/firebase-config.js`** e substitua os valores
-`COLE_...` pelos que você copiou na Parte 1:
+As chaves ficam **embutidas no app** (assim todos os aparelhos já vêm
+configurados — não há tela de configuração dentro do app). Abra
+**`braga-veiculos/app/firebase-config.js`** e substitua os valores `COLE_...`
+pelos que você copiou na Parte 1:
 
 ```js
 window.FIREBASE_CONFIG = {
@@ -91,7 +81,9 @@ window.FIREBASE_CONFIG = {
 > (vão para o navegador de qualquer forma); a segurança é feita pelas Regras
 > do Firestore + login anônimo da Parte 2.
 
-Assim que houver chaves válidas, a sincronização liga sozinha.
+Assim que houver chaves válidas, a sincronização liga sozinha. O status aparece
+no **chip no topo** e na tela de login: 🟢 Sincronizado · 🟡 Conectando ·
+🔴 Sem conexão · ⚪ Local (é só indicador — não há botão de configurar).
 
 ## Parte 4 — Publicar (link fixo) no Netlify
 
