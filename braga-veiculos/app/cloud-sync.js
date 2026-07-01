@@ -56,6 +56,9 @@
     _cbs: null,
     _pushTimer: null,
     _statusCb: null,
+    _legacy: false,                 // fallback p/ o modelo antigo (braga/data) se as regras
+                                    // do braga_veiculos ainda não estiverem publicadas
+    _unsub: [],                     // handles p/ desassinar os listeners ao cair no fallback
     _last: { veh: {}, meta: '' },   // espelho da última escrita (base do diff)
     _clientId: (function () {
       try {
@@ -102,19 +105,22 @@
 
     _subscribeMeta: function () {
       var self = this;
-      self._db.collection(COL).doc(META).onSnapshot(function (s) {
+      var unsub = self._db.collection(COL).doc(META).onSnapshot(function (s) {
+        if (self._legacy) return;
         self._setStatus('online');
         if (!s.exists) return;
         var dd = s.data() || {};
         self._last.meta = JSON.stringify(dd.meta || {});
         if (dd.origin === self._clientId) return;             // eco da própria escrita
         if (dd.meta && self._cbs && typeof self._cbs.onMeta === 'function') self._cbs.onMeta(dd.meta);
-      }, function (err) { console.warn('[CloudSync] onSnapshot(meta):', err); self._setStatus('erro'); });
+      }, function (err) { console.warn('[CloudSync] onSnapshot(meta):', err); /* fallback decidido pelo listener de veículos */ });
+      if (typeof unsub === 'function') self._unsub.push(unsub);
     },
 
     _subscribeVehicles: function () {
       var self = this, first = true;
-      self._db.collection(VCOL).onSnapshot(function (snap) {
+      var unsub = self._db.collection(VCOL).onSnapshot(function (snap) {
+        if (self._legacy) return;
         self._setStatus('online');
         if (first) {
           first = false;
@@ -132,7 +138,35 @@
           if (dd.origin === self._clientId) return;             // eco da própria escrita
           if (dd.v && self._cbs && typeof self._cbs.onVehicle === 'function') self._cbs.onVehicle(dd.v);
         });
-      }, function (err) { console.warn('[CloudSync] onSnapshot(veículos):', err); self._setStatus('erro'); });
+      }, function (err) {
+        // Sem permissão em braga_veiculos (regras v2 ainda não publicadas) ou outra
+        // falha de leitura → cai para o modelo antigo (braga/data). Auto-recupera
+        // quando as regras forem publicadas e o app recarregar.
+        console.warn('[CloudSync] onSnapshot(veículos) falhou — usando o modelo antigo (braga/data):', err);
+        self._fallbackLegacy();
+      });
+      if (typeof unsub === 'function') self._unsub.push(unsub);
+    },
+
+    /* Fallback: sincroniza pelo documento único braga/data (comportamento v1).
+       Idempotente. Ativado quando as regras do braga_veiculos ainda não existem. */
+    _fallbackLegacy: function () {
+      var self = this, cbs = self._cbs || {};
+      if (self._legacy) return;
+      self._legacy = true;
+      self._unsub.forEach(function (u) { try { u(); } catch (e) {} });   // desassina os listeners v2
+      self._unsub = [];
+      self._setStatus('online');
+      self._db.collection(COL).doc(DOC).onSnapshot(function (snap) {
+        self._setStatus('online');
+        if (!snap.exists) { if (!self._seeded && typeof cbs.onEmpty === 'function') { self._seeded = true; cbs.onEmpty(); } return; }
+        self._seeded = true;
+        var d = snap.data() || {};
+        if (d.origin === self._clientId) return;               // eco da própria escrita
+        if (!d.payload) return;
+        var parsed; try { parsed = JSON.parse(d.payload); } catch (e) { return; }
+        if (typeof cbs.onFull === 'function') cbs.onFull(parsed);
+      }, function (err) { console.warn('[CloudSync] onSnapshot(braga/data):', err); self._setStatus('erro'); });
     },
 
     /* 1ª conexão com a coleção vazia: migra o legado braga/data, ou semeia
@@ -162,6 +196,7 @@
     },
     _flush: function (data) {
       var self = this;
+      if (self._legacy) return self._flushLegacy(data);   // regras v2 ausentes: grava braga/data
       try {
         var batch = self._db.batch();
         var vcol = self._db.collection(VCOL);
@@ -188,8 +223,21 @@
         if (wrote === 0) { self._setStatus('online'); return; }
         batch.commit()
           .then(function () { self._setStatus('online'); self._last = { veh: curr, meta: metaJson }; })
-          .catch(function (e) { console.warn('[CloudSync] push falhou:', e); self._setStatus('erro'); });
+          .catch(function (e) {
+            // permissão negada no batch (regras v2 ausentes) → cai para o modelo antigo e regrava
+            console.warn('[CloudSync] push (v2) falhou — tentando o modelo antigo (braga/data):', e);
+            self._fallbackLegacy(); self._flushLegacy(data);
+          });
       } catch (e) { console.warn('[CloudSync] push falhou:', e); self._setStatus('erro'); }
+    },
+    /* Fallback de escrita: banco inteiro no documento único braga/data (v1). */
+    _flushLegacy: function (data) {
+      var self = this;
+      try {
+        self._db.collection(COL).doc(DOC).set({ payload: JSON.stringify(data), origin: self._clientId, updatedAt: Date.now() })
+          .then(function () { self._setStatus('online'); })
+          .catch(function (e) { console.warn('[CloudSync] push (braga/data) falhou:', e); self._setStatus('erro'); });
+      } catch (e) { console.warn('[CloudSync] push (braga/data) falhou:', e); self._setStatus('erro'); }
     },
 
     /* ----- Fotos (coleção separada, 1 doc por foto, fora do limite de 1 MB) ----- */

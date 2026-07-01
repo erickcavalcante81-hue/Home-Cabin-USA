@@ -2805,6 +2805,7 @@ if (window.CloudSync && window.CloudSync.enabled) {
     onVehicle: applyRemoteVehicle,             // um veículo mudou em outro aparelho
     onVehicleRemoved: removeRemoteVehicle,     // um veículo foi removido em outro aparelho
     onMeta: applyRemoteMeta,                   // defeitos/entradas/contadores mudaram
+    onFull: applyRemoteFull,                   // modelo antigo (braga/data): banco inteiro de uma vez
     onEmpty: function () {                      // 1ª vez: nuvem vazia e sem legado
       var local = getStorage();                // se este aparelho já tem dados, sobe
       if (local && local.vehicles && local.vehicles.length) window.CloudSync.push(local);
@@ -2840,6 +2841,12 @@ function applyRemoteMeta(meta) {
   if (typeof meta.nextId === 'number') d.nextId = Math.max(d.nextId || 1, meta.nextId);
   if (typeof meta._schema === 'number') d._schema = meta._schema;
   window.CloudSync._applyingRemote = true; setStorage(d); window.CloudSync._applyingRemote = false;
+  if (currentProfile) renderAll();
+}
+// Modelo antigo (braga/data): recebe o banco inteiro de uma vez (fallback v1).
+function applyRemoteFull(remoteData) {
+  if (!remoteData || typeof remoteData !== 'object') return;
+  window.CloudSync._applyingRemote = true; setStorage(remoteData); window.CloudSync._applyingRemote = false;
   if (currentProfile) renderAll();
 }
 
