@@ -315,7 +315,10 @@ grade** (que veio da planilha). Aprova de duas formas:
   legível**, sem reflexo — é o que libera a preparação.
 - Se houver **avaria**, registre **uma foto por avaria** antes de iniciar o preparo.
 - A placa normalmente é fotografada mais à frente (Conferência Final / Entrega).
-- A leitura precisa de **internet na 1ª vez** (baixa o leitor de IA).
+- A leitura usa **OCR na nuvem** (mais preciso) quando configurado; sem nuvem
+  ou offline, cai para o **leitor no aparelho** (precisa de internet na 1ª vez
+  para baixá-lo). O selo do chassi mostra a fonte (**OCR nuvem** / **aparelho**).
+  Para ligar a nuvem, veja `SETUP_NUVEM.md` (Parte 4b).
 
 > As fotos são **comprimidas** no próprio celular (ficam leves) e, com a nuvem
 > ligada, **sincronizam** para a equipe (precisa da regra `braga_fotos` —

@@ -4,6 +4,12 @@
   publish = "braga-veiculos/app"
   command = ""
 
+# Funções serverless (OCR do VIN SERIAL na nuvem). A chave do provedor de
+# visão fica nas Environment variables do Netlify (GOOGLE_VISION_API_KEY ou
+# ANTHROPIC_API_KEY) — nunca no app. Sem chave, o app usa o OCR local.
+[functions]
+  directory = "netlify/functions"
+
 # O service worker não deve ser cacheado pelo CDN, para que atualizações
 # do app cheguem rápido aos aparelhos.
 [[headers]]

@@ -1458,7 +1458,7 @@ function renderDetailFotos(v) {
   var ver = '';
   if (v.chassi) {
     if (v.chassiCheck === 'checking') ver = '<div class="card" style="background:var(--blue-bg);color:var(--blue)">🔍 Lendo o chassi da foto…</div>';
-    else if (v.chassiVerificado) { var lbl = (v.chassiOCR && v.chassiOCR.modo === 'serial') ? 'VIN SERIAL' : 'Chassi'; ver = '<div class="card" style="background:var(--green-bg);color:var(--green);font-weight:700">✓ ' + lbl + ' conferido com a grade' + (v.chassiOverride ? ' (liberação manual)' : (v.chassiOCR ? ' — leitura ' + v.chassiOCR.ratio + '%' : '')) + '</div>'; }
+    else if (v.chassiVerificado) { var lbl = (v.chassiOCR && v.chassiOCR.modo === 'serial') ? 'VIN SERIAL' : 'Chassi'; ver = '<div class="card" style="background:var(--green-bg);color:var(--green);font-weight:700">✓ ' + lbl + ' conferido com a grade' + (v.chassiOverride ? ' (liberação manual)' : (v.chassiOCR ? ' — leitura ' + v.chassiOCR.ratio + '%' + (v.chassiOCR.fonte ? ' · OCR ' + v.chassiOCR.fonte : '') : '')) + '</div>'; }
     else if (v.chassiOCR && !v.chassiOCR.ok) { var lbl2 = (v.chassiOCR.modo === 'serial') ? 'VIN SERIAL' : 'Chassi'; ver = '<div class="card" style="background:var(--red-bg);color:var(--red);font-weight:700">✗ ' + lbl2 + ' NÃO confere<br><span style="font-weight:400;font-size:12px">Leitura: <b>' + (v.chassiOCR.lido || '—') + '</b> · Grade: <b>' + v.chassiOCR.esperado + '</b> — tire a foto de novo (adesivo GM legível).</span></div>'; }
     else if (v.chassiCheck === 'error') ver = '<div class="card" style="background:var(--yellow-bg)">⚠️ Não foi possível ler o chassi (precisa de internet na 1ª vez). Tente "Verificar chassi".</div>';
   }
@@ -1524,6 +1524,29 @@ function ocrDataUrl(dataUrl) {
     });
   });
 }
+// OCR na NUVEM (Netlify Function) — mais preciso. A chave fica no servidor.
+// 404/501 = função ausente/sem provedor → marca indisponível e usa o aparelho.
+var _cloudOcr = { tried: false, ok: false };
+function ocrCloud(dataUrl) {
+  return fetch('/.netlify/functions/ocr-vin', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: dataUrl })
+  }).then(function (r) {
+    if (r.status === 404 || r.status === 501) { _cloudOcr.tried = true; _cloudOcr.ok = false; throw new Error('cloud-ocr-indisponivel'); }
+    if (!r.ok) throw new Error('cloud-ocr-http-' + r.status);
+    return r.json();
+  }).then(function (j) {
+    if (!j || j.ok !== true || typeof j.text !== 'string') throw new Error('cloud-ocr-resposta');
+    _cloudOcr.tried = true; _cloudOcr.ok = true;
+    return { text: j.text, fonte: 'nuvem' };
+  });
+}
+// Lê o VIN: nuvem primeiro (se disponível), com fallback automático p/ o aparelho.
+function ocrRead(dataUrl) {
+  var local = function () { return ocrDataUrl(dataUrl).then(function (t) { return { text: t, fonte: 'aparelho' }; }); };
+  if (_cloudOcr.tried && !_cloudOcr.ok) return local();     // já sabemos que a nuvem não está disponível
+  return ocrCloud(dataUrl).catch(local);                    // tenta nuvem; qualquer falha → aparelho
+}
 function _vinClean(s) {
   // VIN não usa I, O, Q → mapeia leituras desses p/ 1/0 (confusões comuns do OCR)
   return (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/[IOQ]/g, function (c) { return c === 'I' ? '1' : '0'; });
@@ -1576,17 +1599,18 @@ function verifyChassi(dataUrl) {
   v.chassiCheck = 'checking'; setStorage(data);
   if (currentVehicleId === vid) renderDetailTab(currentDetailTab);
   toast('🔍 Lendo o chassi da foto...');
-  ocrDataUrl(dataUrl).then(function (text) {
+  ocrRead(dataUrl).then(function (res) {
+    var text = res.text, fonte = res.fonte;
     var d = getStorage(); var vv = d.vehicles.find(function (x) { return x.id === vid; }); if (!vv) return;
     var mt = matchVin(text, vv.chassi);
     var alvo = mt.mode === 'serial' ? vinSerial(vv.chassi) : _vinClean(vv.chassi);
     var rotulo = mt.mode === 'serial' ? 'VIN SERIAL' : 'chassi';
     vv.chassiVerificado = mt.ok; vv.chassiOverride = false; vv.chassiCheck = 'done';
-    vv.chassiOCR = { lido: mt.candidate, esperado: alvo, modo: mt.mode, ratio: Math.round(mt.ratio * 100), ok: mt.ok, ts: new Date().toISOString() };
+    vv.chassiOCR = { lido: mt.candidate, esperado: alvo, modo: mt.mode, ratio: Math.round(mt.ratio * 100), ok: mt.ok, fonte: fonte, ts: new Date().toISOString() };
     vv.history = vv.history || [];
     vv.history.push({ ts: new Date().toISOString(), user: currentUserName || currentProfile,
-      action: mt.ok ? ('✓ ' + rotulo + ' conferido por foto (' + vv.chassiOCR.ratio + '%)')
-                     : ('✗ ' + rotulo + ' NÃO conferiu: lido ' + (mt.candidate || '?') + ' vs grade ' + alvo) });
+      action: (mt.ok ? ('✓ ' + rotulo + ' conferido por foto (' + vv.chassiOCR.ratio + '%')
+                     : ('✗ ' + rotulo + ' NÃO conferiu: lido ' + (mt.candidate || '?') + ' vs grade ' + alvo + ' (')) + 'OCR ' + fonte + ')' });
     setStorage(d);
     if (currentVehicleId === vid) renderDetailTab(currentDetailTab);
     toast(mt.ok ? '✓ Chassi confere com a grade' : '✗ Chassi NÃO confere');
@@ -2777,21 +2801,46 @@ function loadDemo() {
 // ===== BOOT: nuvem (se configurada) OU dados de exemplo (offline) =====
 if (window.CloudSync && window.CloudSync.onStatus) window.CloudSync.onStatus(updateCloudChip);
 if (window.CloudSync && window.CloudSync.enabled) {
-  window.CloudSync.init(
-    function onRemote(remoteData) {            // atualização vinda de outro aparelho
-      if (!remoteData || typeof remoteData !== 'object') return;
-      window.CloudSync._applyingRemote = true;
-      setStorage(remoteData);                  // grava local sem re-enviar à nuvem
-      window.CloudSync._applyingRemote = false;
-      if (currentProfile) renderAll();         // atualiza a tela se já estiver logado
-    },
-    function onEmpty() {                        // 1ª vez: nuvem vazia
+  window.CloudSync.init({
+    onVehicle: applyRemoteVehicle,             // um veículo mudou em outro aparelho
+    onVehicleRemoved: removeRemoteVehicle,     // um veículo foi removido em outro aparelho
+    onMeta: applyRemoteMeta,                   // defeitos/entradas/contadores mudaram
+    onEmpty: function () {                      // 1ª vez: nuvem vazia e sem legado
       var local = getStorage();                // se este aparelho já tem dados, sobe
       if (local && local.vehicles && local.vehicles.length) window.CloudSync.push(local);
     }
-  );
+  });
 } else {
   loadDemo();                                  // modo offline: mantém dados de exemplo
+}
+// ----- aplicação granular de mudanças remotas (sync por veículo) -----
+function applyRemoteVehicle(v) {
+  if (!v || v.id == null) return;
+  var d = getStorage();
+  var i = d.vehicles.findIndex(function (x) { return String(x.id) === String(v.id); });
+  if (i >= 0) d.vehicles[i] = v; else d.vehicles.push(v);
+  if (d.nextId == null || Number(v.id) >= d.nextId) d.nextId = Number(v.id) + 1;
+  window.CloudSync._applyingRemote = true; setStorage(d); window.CloudSync._applyingRemote = false;
+  if (currentProfile) renderAll();
+}
+function removeRemoteVehicle(id) {
+  var d = getStorage();
+  var n = d.vehicles.length;
+  d.vehicles = d.vehicles.filter(function (x) { return String(x.id) !== String(id); });
+  if (d.vehicles.length !== n) {
+    window.CloudSync._applyingRemote = true; setStorage(d); window.CloudSync._applyingRemote = false;
+    if (currentProfile) renderAll();
+  }
+}
+function applyRemoteMeta(meta) {
+  if (!meta || typeof meta !== 'object') return;
+  var d = getStorage();
+  if (Array.isArray(meta.defects)) d.defects = meta.defects;
+  if (Array.isArray(meta.intakes)) d.intakes = meta.intakes;
+  if (typeof meta.nextId === 'number') d.nextId = Math.max(d.nextId || 1, meta.nextId);
+  if (typeof meta._schema === 'number') d._schema = meta._schema;
+  window.CloudSync._applyingRemote = true; setStorage(d); window.CloudSync._applyingRemote = false;
+  if (currentProfile) renderAll();
 }
 
 // ===== PWA: registra o service worker (instalável + offline) =====
