@@ -978,12 +978,16 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div style="font-size:17px;font-weight:700">☁️ Sincronização em nuvem</div>
     </div>
     <div id="cloudCurrentStatus" style="font-size:14px;margin-bottom:12px"></div>
-    <div style="font-size:13px;color:var(--text-light);line-height:1.5;margin-bottom:12px">
-      Para sincronizar os dados entre todos os aparelhos, crie um projeto gratuito no
-      <b>Firebase</b> e cole aqui a configuração (Console → ⚙ Configurações do projeto →
-      Seus apps → SDK). Passo a passo completo em <b>docs/SETUP_NUVEM.md</b>.
-    </div>
-    <textarea id="cloudConfigInput" class="form-control" rows="9" placeholder='Cole o bloco do Firebase, por exemplo:
+    <!-- Já sincronizado: mensagem clara, sem pedir para colar nada -->
+    <div id="cloudConnectedNote" style="display:none"></div>
+    <!-- Configuração manual (avançado / quando NÃO está sincronizado) -->
+    <div id="cloudAdvanced">
+      <div style="font-size:13px;color:var(--text-light);line-height:1.5;margin-bottom:12px">
+        Para sincronizar os dados entre todos os aparelhos, crie um projeto gratuito no
+        <b>Firebase</b> e cole aqui a configuração (Console → ⚙ Configurações do projeto →
+        Seus apps → SDK). Passo a passo completo em <b>docs/SETUP_NUVEM.md</b>.
+      </div>
+      <textarea id="cloudConfigInput" class="form-control" rows="9" placeholder='Cole o bloco do Firebase, por exemplo:
 
 const firebaseConfig = {
   apiKey: "AIza...",
@@ -993,10 +997,11 @@ const firebaseConfig = {
   messagingSenderId: "123456789",
   appId: "1:123:web:abc"
 };'></textarea>
-    <div id="cloudConfigStatus" style="font-size:12px;margin-top:8px;min-height:16px"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-secondary" onclick="disconnectCloud()">Desconectar</button>
-      <button class="btn btn-primary btn-block" onclick="saveCloudConfig()">Salvar e conectar</button>
+      <div id="cloudConfigStatus" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-secondary" onclick="disconnectCloud()">Desconectar</button>
+        <button class="btn btn-primary btn-block" onclick="saveCloudConfig()">Salvar e conectar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2749,10 +2754,26 @@ function updateCloudChip(s){
   var cs=document.getElementById('cloudCurrentStatus'); if(cs) cs.innerHTML=cloudStatusLabel(s);
 }
 function openCloudModal(){
-  updateCloudChip(window.CloudSync ? window.CloudSync.status : 'desligado');
+  var st = window.CloudSync ? window.CloudSync.status : 'desligado';
+  updateCloudChip(st);
   try{ var saved=localStorage.getItem('braga_firebase_config'); document.getElementById('cloudConfigInput').value = saved?JSON.stringify(JSON.parse(saved),null,2):''; }catch(e){}
   document.getElementById('cloudConfigStatus').textContent='';
+  // Já conectado (chaves embutidas ou salvas): não pede para colar nada.
+  var connected = (st==='online' || st==='conectando');
+  var note=document.getElementById('cloudConnectedNote'), adv=document.getElementById('cloudAdvanced');
+  if(connected){
+    var pid=(window.CloudSync&&window.CloudSync.projectId)||'—';
+    note.innerHTML='<div style="background:var(--green-bg);color:var(--green);border-radius:10px;padding:12px;font-size:13px;line-height:1.5">✅ <b>Este app já está sincronizado</b> com o projeto <b>'+pid+'</b>.<br>Você <b>não precisa colar nada</b> — é só fechar no ✕ do canto.</div>'
+      +'<button onclick="toggleCloudAdvanced()" style="background:none;border:none;color:var(--text-light);text-decoration:underline;font-size:12px;margin-top:12px;cursor:pointer;padding:0">Configurar outro projeto / desconectar (avançado)</button>';
+    note.style.display='block'; adv.style.display='none';
+  } else {
+    note.style.display='none'; adv.style.display='block';
+  }
   openModal('cloudModal');
+}
+function toggleCloudAdvanced(){
+  var adv=document.getElementById('cloudAdvanced');
+  adv.style.display = (adv.style.display==='none') ? 'block' : 'none';
 }
 function saveCloudConfig(){
   var cfg=parseFirebaseConfig(document.getElementById('cloudConfigInput').value);
