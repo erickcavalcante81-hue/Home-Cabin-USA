@@ -160,29 +160,51 @@ Você faz a **Entrega ao Cliente** (etapa 3).
 
 ---
 
-## 5. Importar uma PLANILHA DE ENTREGA (vários veículos de uma vez)
+## 5. Importar as 4 planilhas de programação (lote — v5.1)
 
-Para Gerente/Torre/Programador/Co-Programador. Cadastra a planilha do dia inteira
-em segundos — **de forma automática, sem precisar selecionar ou confirmar
-veículo por veículo**.
+Para Gerente/Torre/Programador/Co-Programador. Cadastra a planilha inteira em
+segundos — **de forma automática, sem precisar selecionar ou confirmar veículo
+por veículo**.
 
 1. Aba **Entrada** → **"+ Nova Entrada"**.
-2. Escolha a origem **"📋 Planilha de Entrega (lote)"**.
-3. **Opção A — PDF:** em **"Ler direto de um PDF"**, toque e escolha o arquivo
-   (ex.: `PLANILHA DE ENTREGA - 23_06.pdf`). O app lê tudo sozinho.
-   **Opção B — Colar:** cole o texto da planilha no campo de baixo.
-4. O app **aplica tudo automaticamente** e mostra um **resumo**:
+2. Escolha a origem **"📋 Planilhas de programação (lote)"**.
+3. **Escolha qual planilha** (a regra muda conforme o tipo):
+   - **1 · 🔧 Preparação** — cadastra novos na **Preparação** e atualiza os existentes.
+   - **2 · 🚗 Entrega (agendar)** — define **data/horário/entregador** e leva o
+     veículo para a **Pré-Entrega**.
+   - **3 · 🔁 Reagendamento** — marca **🔁 Reagendado** e volta para a Pré-Entrega.
+   - **4 · ✅ Entregues** — marca os veículos como **✅ Entregue**.
+4. **Opção A — PDF:** em **"Ler direto de um PDF"**, toque e escolha o arquivo.
+   O app lê tudo sozinho. **Opção B — Colar:** cole o texto no campo de baixo.
+5. O app **aplica tudo automaticamente** e mostra um **resumo** (com o tipo da
+   planilha):
    - **✅ Novos** — cadastrados direto.
-   - **🔔 Atualizados** — veículos que já existiam (mesmo chassi) e tiveram
-     alguma mudança (ex.: trocou o entregador ou o horário). O app **substitui
-     pela versão mais recente** e marca o veículo com a tag **🔔 Alterado** na
-     lista de Veículos. A tag **some quando alguém abre** o veículo.
+   - **🔔 Atualizados** — já existiam (mesmo chassi) e mudaram. O app **substitui
+     pela versão mais recente** e marca com **🔔 Alterado** na lista. A tag
+     **some quando alguém abre** o veículo.
    - **= Sem mudança** — já estavam idênticos (nada a fazer).
 
 > O **chassi** é o identificador: reimportar a mesma planilha **não duplica**.
-> Etapa, checklists e fotos do veículo são **preservados** numa atualização —
-> só os dados da planilha (cliente, cor, vendedor, entregador, horário, data,
-> acessórios) são atualizados, e o histórico registra exatamente o que mudou.
+> Checklists e fotos são **preservados**; só os dados da planilha (cliente, cor,
+> vendedor, entregador, horário, data, acessórios) e a **etapa/estado** conforme
+> o tipo são atualizados, e o histórico registra o que mudou.
+
+---
+
+## 5b. Torre de Controle, comunicação e responsável
+
+- **🗼 Torre de Controle (Dashboard):** no topo do Dashboard, o painel de
+  **pendências** — chassi/VIN SERIAL não conferido, **comunicação pendente**,
+  **sem responsável**, Pré-Entrega sem data e atrasados. Toque numa pendência
+  para expandir e vá direto ao veículo.
+- **📲 Comunicar (obrigatório a cada etapa):** ao concluir uma etapa, o veículo
+  fica com **📲 Comunicar** e o botão aparece em destaque no detalhe. Toque para
+  o app **montar a mensagem** (veículo, chassi, etapa, responsável, entrega) e
+  **compartilhar/copiar** no WhatsApp — Equipe · Vendedor · Gerência · Torre. Ao
+  enviar, a pendência é resolvida e fica registrada no histórico.
+- **👤 Responsável:** no detalhe do veículo, informe **quem está responsável**
+  pela etapa atual e toque em **Salvar**. Aparece no card e na Torre; a cada
+  avanço de etapa o responsável é **zerado** para ser reatribuído.
 
 ---
 

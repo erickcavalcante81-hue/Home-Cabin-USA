@@ -4,10 +4,13 @@ Sistema de gestão de preparação e entrega de veículos zero km da **Braga
 Veículos** (concessionária Chevrolet). App mobile-first em dark mode, alinhado
 ao **Fluxograma v5.1**: pipeline de 5 etapas (Preparação → Pré-Entrega →
 Conferência Final → Entrega → Entregue), 9 perfis de usuário (com Torre de
-Controle, Equipe Técnica e Entregador Técnico), entrada das planilhas de
-programação (PDF / texto), fluxo **Via Rápida** (frota/locadora),
-**Reagendamento**, conferência do **VIN SERIAL** (adesivo GM) por OCR,
-checklists por etapa, registro de defeitos e dashboard gerencial.
+Controle, Equipe Técnica e Entregador Técnico), entrada das **4 planilhas de
+programação** categorizadas (Preparação / Entrega / Reagendamento / Entregues,
+por PDF ou texto), fluxo **Via Rápida** (frota/locadora), **Reagendamento**,
+conferência do **VIN SERIAL** (adesivo GM) por OCR, **🗼 Torre de Controle**
+(pendências), **comunicação obrigatória** por etapa (WhatsApp) e **atribuição
+de responsável**, checklists por etapa, registro de defeitos e dashboard
+gerencial.
 
 > **Origem:** este diretório foi integrado a partir da pasta do Google Drive
 > [`BRAGA_VEICULOS_Projeto_Completo`](https://drive.google.com/drive/folders/1fgHxd_fKNutviOia5pn4rs8gZepcNxWT)
@@ -93,24 +96,35 @@ operacionais `entregador`, `horarioEntrega`, `viaRapida` (frota/locadora) e
 `migrateStages()` converte **uma única vez** dados do pipeline antigo (8 etapas
 v4) para as **5 etapas do v5.1** e marca `_schema: 51` (idempotente).
 
-**Importação em lote (Entrada → "Planilha de Entrega"):** dá para **subir o
-PDF** da planilha (extração automática via PDF.js, sem copiar/colar) **ou**
+**Importação das 4 planilhas (Entrada → "Planilhas de programação"):** escolhe-se
+**qual** planilha e dá para **subir o PDF** (extração automática via PDF.js) **ou**
 colar o texto. O app extrai todos os veículos — âncora no chassi, normaliza
 cor/acessórios (corrige typos) e detecta horário/entregador — e **aplica
-automaticamente, sem seleção/confirmação**:
+automaticamente, sem seleção/confirmação**, com regra por tipo:
 
-- **Novos** → cadastrados direto.
-- **Existentes (mesmo chassi) com mudança** → **sobrescritos pela última
-  versão** e marcados com a tag **🔔 Alterado** (some ao abrir o veículo). A
-  etapa/checklists/fotos são preservados; o histórico registra o que mudou.
-- **Idênticos** → ignorados (não duplica).
+- **1 · Preparação** → novos entram na etapa Preparação; existentes atualizados.
+- **2 · Entrega** → define data/horário/entregador e leva para a **Pré-Entrega**.
+- **3 · Reagendamento** → marca **🔁 Reagendado** e volta para a Pré-Entrega.
+- **4 · Entregues** → marca como **✅ Entregue**.
 
-Ao final mostra um **resumo** (novos · atualizados · sem mudança).
+Em todos: **novos** cadastrados direto; **existentes (mesmo chassi) com mudança**
+→ **sobrescritos pela última versão** e marcados com **🔔 Alterado** (some ao
+abrir); **idênticos** → ignorados (não duplica). Checklists/fotos preservados; o
+histórico registra o que mudou. Ao final, um **resumo** (tipo · novos ·
+atualizados · sem mudança).
 
 - Leitura do PDF: `loadPdfJs()` (CDN, precisa de internet na 1ª vez) +
   `reconstructPdfRows()` reconstrói as linhas da tabela ancorando no chassi
   (agrupa por Y, ordena por X) → texto limpo em ordem de coluna.
-- Parsing/gravação: `parsePlanilha()` / `applyPlanilhaRows()` (com `OVERWRITE_FIELDS`).
+- Parsing/gravação: `parsePlanilha()` / `applyPlanilhaRows(rows,data,ts,user,tipo)`
+  (com `OVERWRITE_FIELDS` + regra de etapa por tipo).
+
+**Torre de Controle · comunicação · atribuição:** o Dashboard traz o painel
+**🗼 Torre de Controle** com as pendências (chassi/VIN SERIAL não conferido,
+comunicação pendente, sem responsável, Pré-Entrega sem data, atrasados). Ao
+concluir uma etapa, o app exige **📲 comunicar** (monta a mensagem e
+compartilha/copia p/ WhatsApp — Equipe · Vendedor · Gerência · Torre) e o
+veículo guarda o **👤 responsável** da etapa (reatribuído a cada avanço).
 
 Validado contra os PDFs reais das planilhas (ex.: 23/06 → 18/18 veículos).
 Padrão dos documentos em

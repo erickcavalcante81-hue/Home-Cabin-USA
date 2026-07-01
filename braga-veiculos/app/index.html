@@ -397,6 +397,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   cursor: pointer; text-align: center; transition: all 0.2s;
 }
 .auth-btn.selected { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.ptipo-btn {
+  padding: 12px 8px; border-radius: 8px; border: 2px solid var(--border);
+  background: #1a1d2e; font-size: 12px; font-weight: 700; color: var(--text-light);
+  cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.ptipo-btn.selected { border-color: var(--primary); background: #fff0f2; color: var(--primary); }
 .drop-zone {
   border: 2px dashed var(--border); border-radius: 10px;
   padding: 24px; text-align: center; cursor: pointer;
@@ -519,6 +525,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div class="kpi-card green"><div class="kpi-number" id="kpiOnTime">0</div><div class="kpi-label">No Prazo</div></div>
       <div class="kpi-card yellow"><div class="kpi-number" id="kpiWarning">0</div><div class="kpi-label">Atenção</div></div>
       <div class="kpi-card red"><div class="kpi-number" id="kpiLate">0</div><div class="kpi-label">Atrasados</div></div>
+    </div>
+
+    <div class="card" id="torreCard" style="margin-bottom:10px;display:none">
+      <div class="card-header"><div class="card-title">🗼 Torre de Controle — Pendências</div></div>
+      <div id="dashTorre"></div>
     </div>
 
     <div class="card" style="margin-bottom:10px">
@@ -794,8 +805,20 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
           <span class="src-icon">🖼️</span><span>Imagem / Print</span>
         </button>
         <button class="source-btn" id="src_planilha" onclick="selectSource('planilha')" style="grid-column:1/-1">
-          <span class="src-icon">📋</span><span>Planilha de Entrega (lote — vários veículos)</span>
+          <span class="src-icon">📋</span><span>Planilhas de programação (lote — v5.1)</span>
         </button>
+      </div>
+
+      <!-- Planilha: qual das 4 planilhas do v5.1? -->
+      <div id="planilhaTipoBlock" style="display:none;margin-bottom:14px">
+        <div class="form-label" style="margin-bottom:8px">Qual planilha? (Fluxograma v5.1)</div>
+        <div class="source-grid" style="grid-template-columns:1fr 1fr;margin-bottom:6px">
+          <button class="ptipo-btn selected" id="ptipo_preparacao" onclick="selectPlanilhaTipo('preparacao')">1 · 🔧 Preparação</button>
+          <button class="ptipo-btn" id="ptipo_entrega" onclick="selectPlanilhaTipo('entrega')">2 · 🚗 Entrega (agendar)</button>
+          <button class="ptipo-btn" id="ptipo_reagendamento" onclick="selectPlanilhaTipo('reagendamento')">3 · 🔁 Reagendamento</button>
+          <button class="ptipo-btn" id="ptipo_entregues" onclick="selectPlanilhaTipo('entregues')">4 · ✅ Entregues</button>
+        </div>
+        <div id="ptipoHint" style="font-size:12px;color:var(--text-light)"></div>
       </div>
 
       <!-- Planilha: upload de PDF (extração automática) -->
@@ -1158,6 +1181,40 @@ function renderAll() {
 }
 
 // ===== DASHBOARD =====
+// 🗼 Torre de Controle — pendências que precisam de ação/atribuição/comunicação.
+function renderTorre(data, active) {
+  const el = document.getElementById('dashTorre');
+  const card = document.getElementById('torreCard');
+  if(!el) return;
+  const chassiPend = active.filter(v => v.stage===0 && v.chassi && !v.chassiVerificado);
+  const commPend   = data.vehicles.filter(v => v.commPendente != null);
+  const semResp    = active.filter(v => !v.assignee);
+  const semData    = active.filter(v => v.stage>=1 && !v.deliveryDate);
+  const atrasados  = active.filter(v => getStatus(v)==='red');
+  const groups = [
+    { icon:'🔢', label:'Chassi/VIN SERIAL não conferido', list:chassiPend, color:'red' },
+    { icon:'📲', label:'Comunicação pendente', list:commPend, color:'yellow' },
+    { icon:'👤', label:'Sem responsável atribuído', list:semResp, color:'blue' },
+    { icon:'🗓️', label:'Pré-Entrega sem data', list:semData, color:'yellow' },
+    { icon:'⏰', label:'Atrasados', list:atrasados, color:'red' }
+  ];
+  const totalPend = groups.reduce((s,g)=>s+g.list.length,0);
+  if(totalPend===0){
+    el.innerHTML = '<div style="color:var(--green);font-weight:600;font-size:13px;padding:4px 0">✅ Sem pendências — fluxo em dia.</div>';
+  } else {
+    el.innerHTML = groups.filter(g=>g.list.length).map(g => `
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <div style="font-weight:600;font-size:13px">${g.icon} ${g.label}</div>
+          <span class="badge badge-${g.color}">${g.list.length}</span>
+        </div>
+        <div style="display:none;margin-top:4px">
+          ${g.list.map(v => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="openDetail(${v.id})"><div style="font-size:13px">${v.model} — ${v.client}</div><div style="font-size:11px;color:#6b7280">${_stageName(v.stage)}</div></div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+  card.style.display = (currentProfile==='torre' || currentProfile==='gerente' || totalPend>0) ? 'block' : 'none';
+}
 function renderDashboard() {
   const data = getStorage();
   const active = data.vehicles.filter(v => v.stage < 4);
@@ -1172,6 +1229,8 @@ function renderDashboard() {
   document.getElementById('kpiOnTime').textContent = onTime;
   document.getElementById('kpiWarning').textContent = warning;
   document.getElementById('kpiLate').textContent = late;
+
+  renderTorre(data, active);
 
   // Today's deliveries
   const today = new Date().toISOString().split('T')[0];
@@ -1254,7 +1313,7 @@ function renderVehicles() {
       <div class="vehicle-card status-${status}" onclick="openDetail(${v.id})">
         <div class="vehicle-info">
           <div>
-            <div class="vehicle-model">${v.model}${v.color?' · '+v.color:''} ${v.changed?'<span class="badge badge-yellow" style="font-size:10px;vertical-align:middle">🔔 Alterado</span>':''}${v.viaRapida?'<span class="badge badge-blue" style="font-size:10px;vertical-align:middle">⚡ Via Rápida</span>':''}${v.reagendado?'<span class="badge badge-red" style="font-size:10px;vertical-align:middle">🔁 Reagendado</span>':''}</div>
+            <div class="vehicle-model">${v.model}${v.color?' · '+v.color:''} ${v.changed?'<span class="badge badge-yellow" style="font-size:10px;vertical-align:middle">🔔 Alterado</span>':''}${v.viaRapida?'<span class="badge badge-blue" style="font-size:10px;vertical-align:middle">⚡ Via Rápida</span>':''}${v.reagendado?'<span class="badge badge-red" style="font-size:10px;vertical-align:middle">🔁 Reagendado</span>':''}${v.commPendente!=null?'<span class="badge badge-yellow" style="font-size:10px;vertical-align:middle">📲 Comunicar</span>':''}</div>
             <div class="vehicle-meta">${v.client}</div>
           </div>
           <span class="badge badge-${status==='green'?'green':status==='yellow'?'yellow':'red'}">${STAGES[v.stage].name}</span>
@@ -1266,7 +1325,7 @@ function renderVehicles() {
         </div>
         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:11px;color:#6b7280">${v.accessories && v.accessories.length > 0 ? `🛠️ ${v.accessories.filter(a=>a.installed).length}/${v.accessories.length}` : ''}${v.fotos && v.fotos.length ? `${v.accessories&&v.accessories.length?' · ':''}📷 ${v.fotos.length}` : ''}</span>
-          <span style="font-size:11px;background:#252840;padding:2px 8px;border-radius:10px;color:var(--text-light)">👤 ${STAGES[v.stage].resp}</span>
+          <span style="font-size:11px;background:#252840;padding:2px 8px;border-radius:10px;color:var(--text-light)">👤 ${v.assignee || STAGES[v.stage].resp}</span>
         </div>
       </div>
     `;
@@ -1593,6 +1652,14 @@ function renderDetailInfo(v) {
     ${v.stage < 4 ? `
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
       <button class="btn btn-secondary btn-sm" onclick="toggleViaRapida()" style="align-self:flex-start">${v.viaRapida?'⚡ Via Rápida LIGADA (Frota/Locadora)':'⚡ Marcar Via Rápida (Frota/Locadora)'}</button>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Responsável pela etapa (${STAGES[v.stage].resp})</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-control" id="assigneeInput" value="${v.assignee||''}" placeholder="Quem está responsável agora" style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="setAssignee()">Salvar</button>
+        </div>
+      </div>
+      ${v.commPendente!=null ? `<button class="btn btn-block" onclick="comunicarConclusao()" style="background:var(--yellow-bg);color:var(--yellow);font-weight:700;border:1px solid var(--yellow)">📲 Comunicar conclusão: ${_stageName(v.commPendente)}</button>` : `<button class="btn btn-secondary btn-block" onclick="comunicarConclusao()">📲 Comunicar status (Equipe · Vendedor · Gerência · Torre)</button>`}
       ${v.stage < 2 ? `
         <div class="form-group" id="delivDateGroup" style="margin-bottom:0">
           <label class="form-label">Agendar Data de Entrega</label>
@@ -1641,12 +1708,74 @@ function advanceStage() {
       if(!confirm(`Apenas ${done} de ${tpl.items.length} itens do checklist foram marcados.\nDeseja avançar mesmo assim?`)) return;
     }
   }
+  const etapaConcluida = v.stage;
   v.stage++;
+  v.commPendente = etapaConcluida;   // 📲 comunicação obrigatória da etapa concluída (v5.1)
+  v.assignee = '';                    // nova etapa: reatribuir responsável
   v.history = v.history || [];
   v.history.push({ ts: new Date().toISOString(), action: `Avançou para: ${STAGES[v.stage].name}`, user: currentUserName || currentProfile });
   setStorage(data);
   openDetail(currentVehicleId);
-  toast(`Avançado para: ${STAGES[v.stage].name}`);
+  toast(`Avançado para: ${STAGES[v.stage].name} — 📲 comunique a conclusão`);
+}
+// 👤 Atribuição de tarefas: quem é o responsável pela etapa atual.
+function setAssignee() {
+  const val = (document.getElementById('assigneeInput')||{}).value || '';
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v) return;
+  const before = v.assignee || '';
+  v.assignee = val.trim();
+  v.history = v.history || [];
+  v.history.push({ ts: new Date().toISOString(), action: v.assignee ? ('👤 Responsável: ' + v.assignee + (before?(' (era '+before+')'):'')) : 'Responsável removido', user: currentUserName || currentProfile });
+  setStorage(data);
+  openDetail(currentVehicleId);
+  toast(v.assignee ? ('Responsável: ' + v.assignee) : 'Responsável removido');
+}
+// 📲 Comunicação obrigatória: monta a mensagem e compartilha/copia (WhatsApp).
+function buildCommMessage(v) {
+  const concl = (v.commPendente!=null) ? _stageName(v.commPendente) : null;
+  const prox = (v.stage < STAGES.length-1) ? _stageName(v.stage) : 'Entregue';
+  const linhas = [
+    '🚗 Braga Veículos — ' + (v.model||'') + (v.color?(' · '+v.color):''),
+    'Cliente: ' + (v.client||'—'),
+    'Chassi/VIN SERIAL: ' + (v.chassi||'—')
+  ];
+  if(concl) linhas.push('✅ Etapa concluída: ' + concl);
+  linhas.push('➡️ Etapa atual: ' + prox);
+  if(v.assignee) linhas.push('👤 Responsável: ' + v.assignee);
+  if(v.deliveryDate || v.horarioEntrega) linhas.push('🗓️ Entrega: ' + (v.deliveryDate?formatDate(v.deliveryDate):'') + (v.horarioEntrega?(' '+v.horarioEntrega):''));
+  if(v.viaRapida) linhas.push('⚡ Via Rápida (Frota/Locadora)');
+  if(v.reagendado) linhas.push('🔁 Reagendado');
+  linhas.push('📣 Comunicar: Equipe · Vendedor · Gerência · Torre de Controle');
+  return linhas.join('\n');
+}
+function comunicarConclusao() {
+  const data = getStorage();
+  const v = data.vehicles.find(v => v.id === currentVehicleId);
+  if(!v) return;
+  const msg = buildCommMessage(v);
+  const registrar = function(via){
+    const d = getStorage(); const vv = d.vehicles.find(x => x.id === currentVehicleId); if(!vv) return;
+    vv.comunicados = vv.comunicados || {};
+    const etapa = (vv.commPendente!=null) ? vv.commPendente : vv.stage;
+    vv.comunicados[etapa] = new Date().toISOString();
+    vv.commPendente = null;   // pendência resolvida
+    vv.history = vv.history || [];
+    vv.history.push({ ts: new Date().toISOString(), action: '📲 Comunicado (' + via + ') — ' + _stageName(etapa), user: currentUserName || currentProfile });
+    setStorage(d);
+    openDetail(currentVehicleId);
+    toast('📲 Comunicação registrada');
+  };
+  if(navigator.share){
+    navigator.share({ title:'Braga Veículos', text:msg }).then(function(){ registrar('compartilhado'); })
+      .catch(function(){ /* usuário cancelou: não registra */ });
+  } else if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).then(function(){ registrar('copiado'); toast('📋 Mensagem copiada — cole no WhatsApp'); })
+      .catch(function(){ alert(msg); registrar('exibido'); });
+  } else {
+    alert(msg); registrar('exibido');
+  }
 }
 function revertStage() {
   const data = getStorage();
@@ -1980,6 +2109,13 @@ let intakeSender = null;
 let parsedAccs = [];
 let parsedPlanilha = [];
 let _bulkDate = null;
+let planilhaTipo = 'preparacao';   // v5.1: 1 Preparação · 2 Entrega · 3 Reagendamento · 4 Entregues
+const PLANILHA_TIPOS = {
+  preparacao:    { label: '1 · Preparação',    hint: 'Fila de preparação: cadastra novos na etapa Preparação e atualiza os existentes.' },
+  entrega:       { label: '2 · Entrega',       hint: 'Agenda diária (48h antes): define data/horário/entregador e leva o veículo para a Pré-Entrega.' },
+  reagendamento: { label: '3 · Reagendamento', hint: 'Cliente não compareceu: marca 🔁 Reagendado e volta o veículo para a Pré-Entrega com a nova data.' },
+  entregues:     { label: '4 · Entregues',     hint: 'Confirmação de entrega: marca os veículos como ✅ Entregue.' }
+};
 
 function openIntakePreFilled() {
   openIntakeModal();
@@ -1991,7 +2127,7 @@ function openIntakePreFilled() {
 }
 
 function openIntakeModal() {
-  intakeSource = null; intakeSender = null; parsedAccs = []; parsedPlanilha = []; _bulkDate = null;
+  intakeSource = null; intakeSender = null; parsedAccs = []; parsedPlanilha = []; _bulkDate = null; planilhaTipo = 'preparacao';
   document.getElementById('intakeStep1').style.display = 'block';
   document.getElementById('intakeStep2').style.display = 'none';
   document.getElementById('intakeStep3').style.display = 'none';
@@ -2016,12 +2152,14 @@ function selectSource(src) {
   document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('src_'+src).classList.add('selected');
   document.getElementById('authBlock').style.display = src === 'whatsapp' ? 'block' : 'none';
+  document.getElementById('planilhaTipoBlock').style.display = src === 'planilha' ? 'block' : 'none';
   document.getElementById('planilhaPdfBlock').style.display = src === 'planilha' ? 'block' : 'none';
   document.getElementById('textBlock').style.display = ['email','whatsapp','planilha'].includes(src) ? 'block' : 'none';
   document.getElementById('fileBlock').style.display = ['pdf','image'].includes(src) ? 'block' : 'none';
   const ta = document.getElementById('intakeText');
   if(src === 'planilha') {
-    ta.placeholder = 'Cole aqui o texto da PLANILHA DE ENTREGA (ou da planilha de preparação).\nO app extrai todos os veículos automaticamente pelo chassi.';
+    selectPlanilhaTipo(planilhaTipo);
+    ta.placeholder = 'Cole aqui o texto da planilha.\nO app extrai todos os veículos automaticamente pelo chassi.';
     document.getElementById('btnProcess').textContent = '🔍 Processar planilha (lote)';
   } else {
     ta.placeholder = 'Cole a mensagem do WhatsApp ou e-mail aqui...';
@@ -2029,6 +2167,17 @@ function selectSource(src) {
   }
   if(src !== 'whatsapp') { intakeSender = null; document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('selected')); }
   checkIntakeReady();
+}
+
+function selectPlanilhaTipo(t) {
+  if(!PLANILHA_TIPOS[t]) t = 'preparacao';
+  planilhaTipo = t;
+  ['preparacao','entrega','reagendamento','entregues'].forEach(function(k){
+    var b = document.getElementById('ptipo_'+k);
+    if(b) b.classList.toggle('selected', k===t);
+  });
+  var hint = document.getElementById('ptipoHint');
+  if(hint) hint.textContent = PLANILHA_TIPOS[t].hint;
 }
 
 function selectSender(name) {
@@ -2230,10 +2379,28 @@ const OVERWRITE_FIELDS = [
   ['horarioEntrega','horario','Horário'], ['deliveryDate','deliveryDate','Data de entrega'],
   ['invoiceDate','dataFaturamento','Faturamento']
 ];
-function applyPlanilhaRows(rows,data,ts,user){
+function _stageName(s){ return (STAGES[s] && STAGES[s].name) || ('etapa ' + s); }
+// Aplica a regra de ETAPA/estado conforme a planilha (v5.1). Retorna true se mudou algo.
+function _applyTipoStage(v, tipo, changes, maxStage){
+  var changed = false;
+  if(tipo === 'entrega'){                       // Planilha 2 — agenda a entrega
+    if(v.stage < 1){ changes.push('Etapa: ' + _stageName(v.stage) + ' → Pré-Entrega'); v.stage = 1; changed = true; }
+    if(!v.agendado){ v.agendado = true; changed = true; }
+  } else if(tipo === 'reagendamento'){          // Planilha 3 — cliente não compareceu
+    if(v.stage !== 1){ changes.push('Etapa: ' + _stageName(v.stage) + ' → Pré-Entrega (reagendado)'); v.stage = 1; changed = true; }
+    if(!v.reagendado){ v.reagendado = true; changed = true; }
+  } else if(tipo === 'entregues'){              // Planilha 4 — confirma a entrega
+    if(v.stage < maxStage){ changes.push('Etapa: ' + _stageName(v.stage) + ' → Entregue'); v.stage = maxStage; changed = true; }
+    if(!v.entregue){ v.entregue = true; changed = true; }
+  }
+  return changed;
+}
+function applyPlanilhaRows(rows,data,ts,user,tipo){
+  tipo = PLANILHA_TIPOS[tipo] ? tipo : 'preparacao';
   data.vehicles=data.vehicles||[]; data.intakes=data.intakes||[];
   var byChassi={}; data.vehicles.forEach(function(v){ if(v.chassi) byChassi[v.chassi]=v; });
   var novos=0, alterados=0, semMudanca=0, rel={novos:[], alterados:[]};
+  var maxStage = STAGES.length - 1;
   rows.forEach(function(r){
     if(!r.chassi) return;
     var accObjs=(r.acessorios||[]).map(function(a){return {name:a,installed:false,installedAt:null};});
@@ -2245,27 +2412,35 @@ function applyPlanilhaRows(rows,data,ts,user){
         var nv=r[f[1]], cur=(v[f[0]]==null?'':String(v[f[0]]));
         if(nv!=null && nv!=='' && String(nv)!==cur){ changes.push(f[2]+': '+(cur||'—')+' → '+nv); v[f[0]]=nv; }
       });
-      // acessórios: adiciona os novos preservando os já instalados
-      v.accessories=v.accessories||[]; var have={}; v.accessories.forEach(function(a){ have[(a.name||'').toLowerCase()]=1; });
-      var added=[]; accObjs.forEach(function(a){ if(!have[a.name.toLowerCase()]){ v.accessories.push(a); added.push(a.name); } });
-      if(added.length) changes.push('Acessórios +'+added.length+' ('+added.join(', ')+')');
-      if(changes.length){
+      // acessórios: só na Preparação/Entrega — adiciona novos preservando os instalados
+      if(tipo==='preparacao' || tipo==='entrega'){
+        v.accessories=v.accessories||[]; var have={}; v.accessories.forEach(function(a){ have[(a.name||'').toLowerCase()]=1; });
+        var added=[]; accObjs.forEach(function(a){ if(!have[a.name.toLowerCase()]){ v.accessories.push(a); added.push(a.name); } });
+        if(added.length) changes.push('Acessórios +'+added.length+' ('+added.join(', ')+')');
+      }
+      var stageChanged = _applyTipoStage(v, tipo, changes, maxStage);
+      if(changes.length || stageChanged){
+        if(!changes.length) changes.push('Planilha ' + PLANILHA_TIPOS[tipo].label + ' aplicada');
         v.changed = ts;   // 🔔 tag de alerta (some ao abrir o veículo)
-        v.history=v.history||[]; v.history.push({ts:ts, action:'Atualizado via Planilha — '+changes.join(' · '), user:user});
+        v.history=v.history||[]; v.history.push({ts:ts, action:'Planilha ' + PLANILHA_TIPOS[tipo].label + ' — '+changes.join(' · '), user:user});
         alterados++; rel.alterados.push({chassi:v.chassi, cliente:v.client, changes:changes});
       } else { semMudanca++; }
     } else {
-      // NOVO: cadastra direto
+      // NOVO: etapa inicial conforme a planilha
+      var startStage = (tipo==='entregues') ? maxStage : (tipo==='preparacao' ? 0 : 1);
       v={ id:data.nextId++, chassi:r.chassi, model:r.modelo||'', versao:r.versao||'', client:r.cliente||'',
           color:r.cor||'', plate:'', invoice:'', phone:'', invoiceDate:r.dataFaturamento||ts.split('T')[0],
           seller:r.vendedor||'', entregador:r.entregador||'', horarioEntrega:r.horario||'', deliveryDate:r.deliveryDate||null,
-          obs:'', stage:0, checklists:{}, accessories:accObjs, intake:{source:'planilha',ts:ts},
-          history:[{ts:ts,action:'Cadastrado via Planilha',user:user}] };
+          obs:'', stage:startStage, checklists:{}, accessories:accObjs, intake:{source:'planilha',tipo:tipo,ts:ts},
+          history:[{ts:ts,action:'Cadastrado via Planilha ' + PLANILHA_TIPOS[tipo].label,user:user}] };
+      if(tipo==='entrega') v.agendado = true;
+      if(tipo==='reagendamento') v.reagendado = true;
+      if(tipo==='entregues') v.entregue = true;
       data.vehicles.push(v); byChassi[r.chassi]=v; novos++; rel.novos.push({chassi:v.chassi, cliente:v.client});
       data.intakes.push({ id:(+new Date())+'-'+r.chassi, vehicleId:v.id, source:'planilha', sender:null, vehicleName:(r.modelo||'')+' — '+(r.cliente||''), ts:ts, status:'processed' });
     }
   });
-  return { novos:novos, alterados:alterados, semMudanca:semMudanca, relatorio:rel };
+  return { novos:novos, alterados:alterados, semMudanca:semMudanca, relatorio:rel, tipo:tipo };
 }
 
 // ----- leitura automática de PDF (PDF.js) -----
@@ -2343,7 +2518,7 @@ function processPlanilhaIntake(){
   const ignoradas = res.rows.length - valid.length;
   if(valid.length === 0){ toast('Nenhum veículo reconhecido (sem chassi). Confira a planilha.'); return; }
   const data = getStorage();
-  const r = applyPlanilhaRows(valid, data, new Date().toISOString(), currentUserName || currentProfile);
+  const r = applyPlanilhaRows(valid, data, new Date().toISOString(), currentUserName || currentProfile, planilhaTipo);
   setStorage(data);
   renderAll();
   showPlanilhaReport(r, res.date, ignoradas);
@@ -2351,8 +2526,9 @@ function processPlanilhaIntake(){
 }
 function showPlanilhaReport(r, date, ignoradas){
   const dataBR = date ? date.split('-').reverse().join('/') : null;
+  const tipoLabel = (PLANILHA_TIPOS[r.tipo] || PLANILHA_TIPOS.preparacao).label;
   document.getElementById('bulkSummary').innerHTML =
-    `${dataBR?`<div class="bulk-sub" style="margin-bottom:8px">Planilha de <b>${dataBR}</b></div>`:''}
+    `<div class="bulk-sub" style="margin-bottom:8px">Planilha <b>${tipoLabel}</b>${dataBR?` · <b>${dataBR}</b>`:''}</div>
      <div style="display:flex;gap:6px;flex-wrap:wrap">
        <span class="badge badge-green">✅ ${r.novos} novo(s)</span>
        <span class="badge badge-yellow">🔔 ${r.alterados} atualizado(s)</span>
