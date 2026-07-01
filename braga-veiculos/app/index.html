@@ -492,8 +492,8 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div><div class="profile-name">Entregador Técnico</div><div class="profile-desc">Entrega ao cliente, fotos finais e Planilha 4 (etapa 4)</div></div>
     </button>
     <div style="margin-top:18px;text-align:center;border-top:1px solid var(--border);padding-top:14px">
-      <button onclick="openCloudModal()" style="background:none;border:1px solid var(--border);color:var(--text-light);border-radius:20px;padding:8px 16px;font-size:13px;cursor:pointer">☁️ Configurar sincronização (nuvem)</button>
-      <div id="cloudLoginStatus" style="font-size:12px;margin-top:8px"></div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:4px">Sincronização em nuvem</div>
+      <div id="cloudLoginStatus" style="font-size:12px"></div>
     </div>
   </div>
 </div>
@@ -510,7 +510,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <div id="cloudChip" onclick="openCloudModal()" title="Sincronização em nuvem" style="cursor:pointer;font-size:12px;font-weight:700;padding:6px 10px;border-radius:16px;background:var(--card);color:var(--text-light)">☁️ Local</div>
+    <div id="cloudChip" title="Status da sincronização em nuvem" style="font-size:12px;font-weight:700;padding:6px 10px;border-radius:16px;background:var(--card);color:var(--text-light)">☁️ Local</div>
     <div class="profile-badge" onclick="logout()" id="profileBadge">—</div>
   </div>
 </div>
@@ -966,42 +966,6 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <div id="bulkSummary" style="font-size:13px;margin-bottom:10px"></div>
       <div id="bulkList" style="max-height:46vh;overflow:auto;margin-bottom:12px"></div>
       <button class="btn btn-primary btn-block" onclick="closeModal('intakeModal')">Concluir</button>
-    </div>
-  </div>
-</div>
-
-<!-- CLOUD CONFIG MODAL -->
-<div class="modal-overlay" id="cloudModal">
-  <div class="modal">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <button onclick="closeModal('cloudModal')" style="background:none;border:none;font-size:22px;color:#6b7280;cursor:pointer">✕</button>
-      <div style="font-size:17px;font-weight:700">☁️ Sincronização em nuvem</div>
-    </div>
-    <div id="cloudCurrentStatus" style="font-size:14px;margin-bottom:12px"></div>
-    <!-- Já sincronizado: mensagem clara, sem pedir para colar nada -->
-    <div id="cloudConnectedNote" style="display:none"></div>
-    <!-- Configuração manual (avançado / quando NÃO está sincronizado) -->
-    <div id="cloudAdvanced">
-      <div style="font-size:13px;color:var(--text-light);line-height:1.5;margin-bottom:12px">
-        Para sincronizar os dados entre todos os aparelhos, crie um projeto gratuito no
-        <b>Firebase</b> e cole aqui a configuração (Console → ⚙ Configurações do projeto →
-        Seus apps → SDK). Passo a passo completo em <b>docs/SETUP_NUVEM.md</b>.
-      </div>
-      <textarea id="cloudConfigInput" class="form-control" rows="9" placeholder='Cole o bloco do Firebase, por exemplo:
-
-const firebaseConfig = {
-  apiKey: "AIza...",
-  authDomain: "braga-veiculos.firebaseapp.com",
-  projectId: "braga-veiculos",
-  storageBucket: "braga-veiculos.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123:web:abc"
-};'></textarea>
-      <div id="cloudConfigStatus" style="font-size:12px;margin-top:8px;min-height:16px"></div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn btn-secondary" onclick="disconnectCloud()">Desconectar</button>
-        <button class="btn btn-primary btn-block" onclick="saveCloudConfig()">Salvar e conectar</button>
-      </div>
     </div>
   </div>
 </div>
@@ -2732,15 +2696,9 @@ function renderIntakeList() {
   }).join('');
 }
 
-// ===== SINCRONIZAÇÃO — CONFIG NA NUVEM (UI) =====
-function parseFirebaseConfig(text){
-  var keys=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId','measurementId'];
-  var out={}; if(!text) return out;
-  var t=text.trim(), a=t.indexOf('{'), b=t.lastIndexOf('}');
-  if(a>=0 && b>a){ try{ var j=JSON.parse(t.slice(a,b+1)); if(j&&j.apiKey){ keys.forEach(function(k){ if(j[k]!=null) out[k]=String(j[k]); }); return out; } }catch(e){} }
-  keys.forEach(function(k){ var m=text.match(new RegExp(k+'\\s*[:=]\\s*[\'"]([^\'"]+)[\'"]')); if(m) out[k]=m[1]; });
-  return out;
-}
+// ===== SINCRONIZAÇÃO — INDICADOR DE STATUS (somente leitura) =====
+// As chaves do Firebase já vêm embutidas (firebase-config.js), então não há
+// tela de configuração no app — aqui ficam só os rótulos de status.
 function cloudStatusLabel(s){
   var map={ online:['🟢','Sincronizado','var(--green)'], conectando:['🟡','Conectando…','var(--yellow)'],
             erro:['🔴','Sem conexão com a nuvem','var(--red)'], desligado:['⚪','Local (sem nuvem)','var(--text-light)'] };
@@ -2751,44 +2709,6 @@ function updateCloudChip(s){
   var chip=document.getElementById('cloudChip');
   if(chip){ var map={online:'🟢 Nuvem',conectando:'🟡 …',erro:'🔴 Offline',desligado:'☁️ Local'}; chip.textContent=map[s]||map.desligado; }
   var ls=document.getElementById('cloudLoginStatus'); if(ls) ls.innerHTML=cloudStatusLabel(s);
-  var cs=document.getElementById('cloudCurrentStatus'); if(cs) cs.innerHTML=cloudStatusLabel(s);
-}
-function openCloudModal(){
-  var st = window.CloudSync ? window.CloudSync.status : 'desligado';
-  updateCloudChip(st);
-  try{ var saved=localStorage.getItem('braga_firebase_config'); document.getElementById('cloudConfigInput').value = saved?JSON.stringify(JSON.parse(saved),null,2):''; }catch(e){}
-  document.getElementById('cloudConfigStatus').textContent='';
-  // Já conectado (chaves embutidas ou salvas): não pede para colar nada.
-  var connected = (st==='online' || st==='conectando');
-  var note=document.getElementById('cloudConnectedNote'), adv=document.getElementById('cloudAdvanced');
-  if(connected){
-    var pid=(window.CloudSync&&window.CloudSync.projectId)||'—';
-    note.innerHTML='<div style="background:var(--green-bg);color:var(--green);border-radius:10px;padding:12px;font-size:13px;line-height:1.5">✅ <b>Este app já está sincronizado</b> com o projeto <b>'+pid+'</b>.<br>Você <b>não precisa colar nada</b> — é só fechar no ✕ do canto.</div>'
-      +'<button onclick="toggleCloudAdvanced()" style="background:none;border:none;color:var(--text-light);text-decoration:underline;font-size:12px;margin-top:12px;cursor:pointer;padding:0">Configurar outro projeto / desconectar (avançado)</button>';
-    note.style.display='block'; adv.style.display='none';
-  } else {
-    note.style.display='none'; adv.style.display='block';
-  }
-  openModal('cloudModal');
-}
-function toggleCloudAdvanced(){
-  var adv=document.getElementById('cloudAdvanced');
-  adv.style.display = (adv.style.display==='none') ? 'block' : 'none';
-}
-function saveCloudConfig(){
-  var cfg=parseFirebaseConfig(document.getElementById('cloudConfigInput').value);
-  if(!cfg.apiKey || !cfg.projectId){
-    document.getElementById('cloudConfigStatus').innerHTML='<span style="color:var(--red)">⚠️ Não encontrei apiKey e projectId. Cole o bloco firebaseConfig completo do Console do Firebase.</span>';
-    return;
-  }
-  try{ localStorage.setItem('braga_firebase_config', JSON.stringify(cfg)); }catch(e){}
-  document.getElementById('cloudConfigStatus').innerHTML='<span style="color:var(--green)">✅ Salvo! Conectando…</span>';
-  setTimeout(function(){ location.reload(); }, 700);
-}
-function disconnectCloud(){
-  if(!confirm('Desligar a sincronização neste aparelho? Os dados locais continuam salvos.')) return;
-  try{ localStorage.removeItem('braga_firebase_config'); }catch(e){}
-  location.reload();
 }
 
 // ===== DEMO DATA =====

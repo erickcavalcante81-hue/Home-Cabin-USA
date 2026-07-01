@@ -5,8 +5,8 @@
    navegador por design). A segurança vem das Regras do Firestore +
    login anônimo — veja docs/SETUP_NUVEM.md.
 
-   Para trocar de projeto, basta substituir os valores abaixo (ou usar
-   a tela "☁️ Configurar sincronização" dentro do app).
+   Para trocar de projeto, basta substituir os valores abaixo e publicar
+   (o app não tem tela de configuração — o status aparece no chip do topo).
    ============================================================ */
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyCXwTyZp95UhCCsszUVBOzCZ32YeyEUwL8",
